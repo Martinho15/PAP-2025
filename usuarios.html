@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários - Sistema de Gestão de Farmácia</title>
+    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Mantendo os estilos do header e notificações do home.html */
+        .sidebar {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .menu-section a i {
+            color: #3498db;
+        }
+
+        .menu-section a:hover,
+        .menu-section a.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0.5rem 0;
+        }
+
+        .card-trend {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .trend-up { color: #28a745; }
+        .trend-down { color: #dc3545; }
+
+        .bg-blue { background: #0077b6; }
+        .bg-green { background: #28a745; }
+        .bg-orange { background: #fd7e14; }
+        .bg-red { background: #dc3545; }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chart-filter {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-filter.active {
+            background: #0077b6;
+            color: white;
+            border-color: #0077b6;
+        }
+
+        .recent-activities {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+
+        .activity-time {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .welcome-message {
+            margin-bottom: 2rem;
+        }
+
+        .welcome-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .welcome-subtitle {
+            color: #666;
+            margin: 0;
+        }
+
+        .header-actions {
+            position: relative;
+        }
+
+        .notifications-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 320px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .notifications-dropdown.show {
+            display: block;
+        }
+
+        .notifications-header {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notifications-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+
+        .mark-all-read {
+            color: #0077b6;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .notifications-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #f0f7ff;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .notification-time {
+            color: #999;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            background: #0077b6;
+            border-radius: 50%;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .notifications-footer {
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+
+        .view-all {
+            color: #0077b6;
+            text-decoration: none;
+        }
+
+        .view-all:hover {
+            text-decoration: underline;
+        }
+
+        .bg-red { background-color: #dc3545; }
+        .bg-orange { background-color: #fd7e14; }
+        .bg-green { background-color: #28a745; }
+        .bg-blue { background-color: #0077b6; }
+
+        /* Estilos específicos para a página de usuários */
+        .users-container {
+            padding: 2rem;
+        }
+
+        .users-header {
+            margin-bottom: 2rem;
+        }
+
+        .users-header h1 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .users-header p {
+            color: #6c757d;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .users-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .search-box {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-width: 250px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .add-user-btn {
+            background: #0077b6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s ease;
+        }
+
+        .add-user-btn:hover {
+            background: #005f92;
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            color: #6c757d;
+        }
+
+        .user-details h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .user-role {
+            color: #6c757d;
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+        }
+
+        .user-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #e1f7e1;
+            color: #28a745;
+        }
+
+        .status-inactive {
+            background: #ffe5e5;
+            color: #dc3545;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+
+        .last-access {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mantendo o header do home.html -->
+    <header>
+        <button class="profile-toggle">
+            <i class="fas fa-user-circle"></i>
+        </button>
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Pesquisar...">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" title="Notificações" id="notificationsBtn">
+                <i class="fas fa-bell"></i>
+                <span class="badge">3</span>
+            </button>
+            <div class="notifications-dropdown" id="notificationsDropdown">
+                <div class="notifications-header">
+                    <h3 class="notifications-title">Notificações</h3>
+                    <button class="mark-all-read">Marcar todas como lidas</button>
+                </div>
+                <div class="notifications-list">
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-red">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Alerta de Sistema</h4>
+                            <p class="notification-message">3 medicamentos precisam de atenção imediata</p>
+                            <p class="notification-time">Agora</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-orange">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Relatório Diário</h4>
+                            <p class="notification-message">Novo relatório de vendas disponível</p>
+                            <p class="notification-time">Há 20 minutos</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-green">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Tarefas Concluídas</h4>
+                            <p class="notification-message">Todas as tarefas do dia foram finalizadas</p>
+                            <p class="notification-time">Há 1 hora</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                </div>
+                <div class="notifications-footer">
+                    <a href="notificacoes.html" class="view-all">Ver todas as notificações</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu Lateral -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="profile-info">
+                <i class="fas fa-user-circle"></i>
+                <span>Usuário</span>
+            </div>
+            <button class="close-sidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="menu-section">
+            <a href="home.html" class="">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <h3>GESTÃO DE FARMÁCIA</h3>
+            <a href="medicamentos.html" class="">
+                <i class="fas fa-pills"></i>
+                <span>Medicamentos</span>
+            </a>
+            <a href="armazem.html">
+                <i class="fas fa-warehouse"></i>
+                <span>Armazém de medicamentos</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-industry"></i>
+                <span>Laboratórios</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>CONTROLE</h3>
+            <a href="movimentacoes.html">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Movimentações</span>
+            </a>
+            <a href="inventario.html">
+                <i class="fas fa-boxes"></i>
+                <span>Inventário</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>RELATÓRIOS</h3>
+            <a href="relatorios.html">
+                <i class="fas fa-chart-bar"></i>
+                <span>Relatórios</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>SISTEMA</h3>
+            <a href="usuarios.html" class="active">
+                <i class="fas fa-users"></i>
+                <span>Usuários</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+            <a href="login.html">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </aside>
+    <main>
+        <div class="users-container">
+            <div class="users-header">
+                <h1>Usuários</h1>
+                <p>Gerencie os usuários do sistema</p>
+            </div>
+
+            <div class="users-controls">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Buscar usuário...">
+                </div>
+
+                <div class="users-filters">
+                    <select class="filter-select">
+                        <option value="">Status</option>
+                        <option value="active">Ativo</option>
+                        <option value="inactive">Inativo</option>
+                    </select>
+                    <select class="filter-select">
+                        <option value="">Cargo</option>
+                        <option value="admin">Administrador</option>
+                        <option value="pharmacist">Farmacêutico</option>
+                        <option value="attendant">Atendente</option>
+                    </select>
+                </div>
+
+                <button class="add-user-btn">
+                    <i class="fas fa-plus"></i>
+                    Novo Usuário
+                </button>
+            </div>
+
+            <div class="users-grid">
+                <div class="user-card">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-details">
+                            <h3>João Silva</h3>
+                            <p class="user-role">Administrador</p>
+                            <span class="user-status status-active">Ativo</span>
+                        </div>
+                    </div>
+                    <p>joao.silva@email.com</p>
+                    <div class="user-actions">
+                        <button class="action-btn" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="action-btn" title="Redefinir senha">
+                            <i class="fas fa-key"></i>
+                        </button>
+                    </div>
+                    <div class="last-access">
+                        <i class="fas fa-clock"></i>
+                        Último acesso: 07/03/2024 09:30
+                    </div>
+                </div>
+
+                <div class="user-card">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-details">
+                            <h3>Maria Santos</h3>
+                            <p class="user-role">Farmacêutico</p>
+                            <span class="user-status status-active">Ativo</span>
+                        </div>
+                    </div>
+                    <p>maria.santos@email.com</p>
+                    <div class="user-actions">
+                        <button class="action-btn" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="action-btn" title="Redefinir senha">
+                            <i class="fas fa-key"></i>
+                        </button>
+                    </div>
+                    <div class="last-access">
+                        <i class="fas fa-clock"></i>
+                        Último acesso: 07/03/2024 08:45
+                    </div>
+                </div>
+
+                <div class="user-card">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-details">
+                            <h3>Pedro Oliveira</h3>
+                            <p class="user-role">Atendente</p>
+                            <span class="user-status status-inactive">Inativo</span>
+                        </div>
+                    </div>
+                    <p>pedro.oliveira@email.com</p>
+                    <div class="user-actions">
+                        <button class="action-btn" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="action-btn" title="Redefinir senha">
+                            <i class="fas fa-key"></i>
+                        </button>
+                    </div>
+                    <div class="last-access">
+                        <i class="fas fa-clock"></i>
+                        Último acesso: 06/03/2024 17:15
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mantendo os scripts do home.html -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        // Controle do menu lateral
+        document.querySelector('.profile-toggle').addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('show');
+        });
+
+        document.querySelector('.close-sidebar').addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('show');
+        });
+
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', (e) => {
+            const sidebar = document.querySelector('.sidebar');
+            const profileToggle = document.querySelector('.profile-toggle');
+            
+            if (!sidebar.contains(e.target) && 
+                !profileToggle.contains(e.target) && 
+                sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+            }
+        });
+
+        // Funcionalidade do dropdown de notificações
+        document.addEventListener('DOMContentLoaded', function() {
+            const notificationsBtn = document.getElementById('notificationsBtn');
+            const notificationsDropdown = document.getElementById('notificationsDropdown');
+            const markAllReadBtn = document.querySelector('.mark-all-read');
+            
+            // Toggle do dropdown de notificações
+            notificationsBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notificationsDropdown.classList.toggle('show');
+            });
+            
+            // Fechar dropdown ao clicar fora
+            document.addEventListener('click', function(e) {
+                if (!notificationsDropdown.contains(e.target) && !notificationsBtn.contains(e.target)) {
+                    notificationsDropdown.classList.remove('show');
+                }
+            });
+            
+            // Marcar todas como lidas
+            markAllReadBtn.addEventListener('click', function() {
+                const unreadItems = document.querySelectorAll('.notification-item.unread');
+                unreadItems.forEach(item => {
+                    item.classList.remove('unread');
+                    item.querySelector('.notification-dot').style.display = 'none';
+                });
+                document.querySelector('.badge').style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,705 @@
+ios.html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratórios</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Estilos CSS */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: #2c3e50;
+            position: fixed;
+            left: 0;
+            top: 0;
+            color: white;
+            padding: 20px;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        /* Estilos dos cards */
+        .lab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .lab-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        /* Menu e links */
+        .menu-section {
+            margin-bottom: 20px;
+        }
+
+        .menu-section a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+        }
+
+        .menu-section a i {
+            margin-right: 10px;
+        }
+
+        /* Formulários */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* Botões */
+        .btn-primary {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Notificações */
+        .notifications-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .notification-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .notification-item.unread {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<!-- ... Resto do seu HTML permanece igual ... -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Dados mockados dos laboratórios
+        const laboratorios = [
+            {
+                id: 1,
+                nome: "Laboratório Nacional",
+                nif: "123456789",
+                endereco: "Rua Principal, 123, Luanda",
+                telefone: "+244 923 456 789",
+                email: "lab.nacional@email.com",
+                status: "active"
+            }
+        ];
+
+        // Renderizar laboratórios
+        function renderizarLaboratorios() {
+            const labGrid = document.querySelector('.lab-grid');
+            labGrid.innerHTML = laboratorios.map(lab => `
+                <div class="lab-card" data-id="${lab.id}">
+                    <div class="lab-header">
+                        <h3>${lab.nome}</h3>
+                        <span class="status-badge ${lab.status}">
+                            ${lab.status === 'active' ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </div>
+                    <div class="lab-info">
+                        <p><i class="fas fa-id-card"></i> NIF: ${lab.nif}</p>
+                        <p><i class="fas fa-phone"></i> ${lab.telefone}</p>
+                        <p><i class="fas fa-envelope"></i> ${lab.email}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> ${lab.endereco}</p>
+                    </div>
+                    <div class="lab-actions">
+                        <button class="btn-icon" onclick="editarLaboratorio(${lab.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon" onclick="excluirLaboratorio(${lab.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Controles do modal
+        const modal = document.getElementById('lab-modal');
+        const addLabBtn = document.getElementById('add-lab-btn');
+        const closeModal = document.getElementById('close-modal');
+        const cancelModal = document.getElementById('cancel-modal');
+        const saveLabBtn = document.getElementById('save-lab');
+        const labForm = document.getElementById('lab-form');
+        let editandoId = null;
+
+        // Eventos do modal
+        addLabBtn.addEventListener('click', () => {
+            editandoId = null;
+            labForm.reset();
+            document.getElementById('modal-title').textContent = 'Adicionar Laboratório';
+            modal.style.display = 'flex';
+        });
+
+        [closeModal, cancelModal].forEach(btn => {
+            btn.addEventListener('click', () => modal.style.display = 'none');
+        });
+
+        // Salvar laboratório
+        saveLabBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (labForm.checkValidity()) {
+                const labData = {
+                    id: editandoId || laboratorios.length + 1,
+                    nome: document.getElementById('lab-name').value,
+                    nif: document.getElementById('lab-nif').value,
+                    endereco: document.getElementById('lab-address').value,
+                    telefone: document.getElementById('lab-phone').value,
+                    email: document.getElementById('lab-email').value,
+                    status: document.getElementById('lab-status').value
+                };
+
+                if (editandoId) {
+                    const index = laboratorios.findIndex(l => l.id === editandoId);
+                    if (index !== -1) laboratorios[index] = labData;
+                } else {
+                    laboratorios.push(labData);
+                }
+
+                renderizarLaboratorios();
+                modal.style.display = 'none';
+                labForm.reset();
+            }
+        });
+
+        // Funções globais
+        window.editarLaboratorio = (id) => {
+            const lab = laboratorios.find(l => l.id === id);
+            if (lab) {
+                editandoId = id;
+                document.getElementById('lab-name').value = lab.nome;
+                document.getElementById('lab-nif').value = lab.nif;
+                document.getElementById('lab-address').value = lab.endereco;
+                document.getElementById('lab-phone').value = lab.telefone;
+                document.getElementById('lab-email').value = lab.email;
+                document.getElementById('lab-status').value = lab.status;
+                modal.style.display = 'flex';
+            }
+        };
+
+        window.excluirLaboratorio = (id) => {
+            if (confirm('Tem certeza que deseja excluir este laboratório?')) {
+                const index = laboratorios.findIndex(l => l.id === id);
+                if (index !== -1) {
+                    laboratorios.splice(index, 1);
+                    renderizarLaboratorios();
+                }
+            }
+        };
+
+        // Inicializar
+        renderizarLaboratorios();
+    });
+</script>
+</body>
+</html<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratórios - Sistema de Controle de Inventário</title>
+    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .content-area {
+            padding: 20px;
+            margin-left: 250px;
+            transition: margin-left 0.3s;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-box input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .labs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .lab-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .lab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .lab-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .lab-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .lab-info {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .lab-info p {
+            margin: 5px 0;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-inactive {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, 
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Lateral (conforme o padrão) -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="profile-info">
+                <i class="fas fa-user-circle"></i>
+                <span>Usuário</span>
+            </div>
+            <button class="close-sidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="menu-section">
+            <a href="home.html">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <h3>GESTÃO DE FARMÁCIA</h3>
+            <a href="medicamentos.html">
+                <i class="fas fa-pills"></i>
+                <span>Medicamentos</span>
+            </a>
+            <a href="armazem.html">
+                <i class="fas fa-warehouse"></i>
+                <span>Armazém</span>
+            </a>
+            <a href="laboratorios.html" class="active">
+                <i class="fas fa-flask"></i>
+                <span>Laboratórios</span>
+            </a>
+        </div>
+        
+        <div class="menu-section">
+            <h3>CONTROLE</h3>
+            <a href="movimentacoes.html">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Movimentações</span>
+            </a>
+            <a href="inventario.html">
+                <i class="fas fa-boxes"></i>
+                <span>Inventário</span>
+            </a>
+        </div>
+        
+        <div class="menu-section">
+            <h3>RELATÓRIOS</h3>
+            <a href="relatorios.html">
+                <i class="fas fa-chart-bar"></i>
+                <span>Relatórios</span>
+            </a>
+        </div>
+        
+        <div class="menu-section">
+            <h3>SISTEMA</h3>
+            <a href="usuarios.html">
+                <i class="fas fa-users"></i>
+                <span>Usuários</span>
+            </a>
+            <a href="configuracoes.html">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+            <a href="login.html">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Área de Conteúdo -->
+    <div class="content-area">
+        <div class="page-header">
+            <h1>Laboratórios</h1>
+            <div class="search-box">
+                <input type="text" placeholder="Pesquisar laboratórios..." id="searchLab">
+                <button class="btn btn-primary" onclick="showModal('addLabModal')">
+                    <i class="fas fa-plus"></i>
+                    Novo Laboratório
+                </button>
+            </div>
+        </div>
+
+        <div class="labs-grid" id="labsGrid">
+            <!-- Os cards serão inseridos aqui via JavaScript -->
+        </div>
+    </div>
+
+    <!-- Modal Adicionar/Editar Laboratório -->
+    <div class="modal" id="addLabModal">
+        <div class="modal-content">
+            <h2>Novo Laboratório</h2>
+            <form id="labForm" onsubmit="return saveLab(event)">
+                <div class="form-group">
+                    <label for="labName">Nome do Laboratório</label>
+                    <input type="text" id="labName" required>
+                </div>
+                <div class="form-group">
+                    <label for="labNIF">NIF</label>
+                    <input type="text" id="labNIF" required>
+                </div>
+                <div class="form-group">
+                    <label for="labContact">Contato</label>
+                    <input type="tel" id="labContact" required>
+                </div>
+                <div class="form-group">
+                    <label for="labEmail">Email</label>
+                    <input type="email" id="labEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="labAddress">Endereço</label>
+                    <input type="text" id="labAddress" required>
+                </div>
+                <div class="form-group">
+                    <label for="labStatus">Status</label>
+                    <select id="labStatus" required>
+                        <option value="active">Ativo</option>
+                        <option value="inactive">Inativo</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('addLabModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Dados de exemplo
+        const laboratories = [
+            {
+                id: 1,
+                name: "Laboratório Angolano de Medicamentos",
+                nif: "5001234567",
+                contact: "+244 923 456 789",
+                email: "contato@labangolano.co.ao",
+                address: "Rua Major Kanhangulo, Luanda",
+                status: "active"
+            },
+            {
+                id: 2,
+                name: "Farmacêutica de Benguela",
+                nif: "5009876543",
+                contact: "+244 912 345 678",
+                email: "contato@farmbenguela.co.ao",
+                address: "Avenida Dr. António Agostinho Neto, Benguela",
+                status: "active"
+            }
+        ];
+
+        // Função para renderizar os cards dos laboratórios
+        function renderLabs(labs = laboratories) {
+            const grid = document.getElementById('labsGrid');
+            grid.innerHTML = '';
+
+            labs.forEach(lab => {
+                const card = document.createElement('div');
+                card.className = 'lab-card';
+                card.innerHTML = `
+                    <div class="lab-header">
+                        <span class="lab-name">${lab.name}</span>
+                        <div class="lab-actions">
+                            <button class="btn btn-secondary" onclick="editLab(${lab.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-secondary" onclick="deleteLab(${lab.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="lab-info">
+                        <p><i class="fas fa-id-card"></i> NIF: ${lab.nif}</p>
+                        <p><i class="fas fa-phone"></i> ${lab.contact}</p>
+                        <p><i class="fas fa-envelope"></i> ${lab.email}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> ${lab.address}</p>
+                        <p>
+                            <span class="status-badge ${lab.status === 'active' ? 'status-active' : 'status-inactive'}">
+                                ${lab.status === 'active' ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Função para mostrar modal
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        // Função para esconder modal
+        function hideModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Função para salvar laboratório
+        function saveLab(event) {
+            event.preventDefault();
+            const formData = {
+                name: document.getElementById('labName').value,
+                nif: document.getElementById('labNIF').value,
+                contact: document.getElementById('labContact').value,
+                email: document.getElementById('labEmail').value,
+                address: document.getElementById('labAddress').value,
+                status: document.getElementById('labStatus').value,
+                id: laboratories.length + 1
+            };
+
+            laboratories.push(formData);
+            renderLabs();
+            hideModal('addLabModal');
+            event.target.reset();
+            return false;
+        }
+
+        // Função para editar laboratório
+        function editLab(id) {
+            const lab = laboratories.find(l => l.id === id);
+            if (lab) {
+                document.getElementById('labName').value = lab.name;
+                document.getElementById('labNIF').value = lab.nif;
+                document.getElementById('labContact').value = lab.contact;
+                document.getElementById('labEmail').value = lab.email;
+                document.getElementById('labAddress').value = lab.address;
+                document.getElementById('labStatus').value = lab.status;
+                showModal('addLabModal');
+            }
+        }
+
+        // Função para deletar laboratório
+        function deleteLab(id) {
+            if (confirm('Tem certeza que deseja excluir este laboratório?')) {
+                const index = laboratories.findIndex(l => l.id === id);
+                if (index !== -1) {
+                    laboratories.splice(index, 1);
+                    renderLabs();
+                }
+            }
+        }
+
+        // Pesquisa de laboratórios
+        document.getElementById('searchLab').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredLabs = laboratories.filter(lab => 
+                lab.name.toLowerCase().includes(searchTerm) ||
+                lab.nif.includes(searchTerm) ||
+                lab.email.toLowerCase().includes(searchTerm)
+            );
+            renderLabs(filteredLabs);
+        });
+
+        // Inicializar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            renderLabs();
+        });
+
+        // Toggle do menu lateral
+        document.querySelector('.close-sidebar').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+            document.querySelector('.content-area').style.marginLeft = 
+                document.querySelector('.sidebar').classList.contains('collapsed') ? '70px' : '250px';
+        });
+    </script>
+</body>
+</html>>

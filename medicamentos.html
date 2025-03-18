@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Medicamentos - Sistema de Gestão de Farmácia</title>
+    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Estilos existentes */
+        /* ... */
+
+        /* Estilos das notificações */
+        .notifications-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 320px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .notifications-dropdown.show {
+            display: block;
+        }
+
+        .notifications-header {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notifications-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+
+        .mark-all-read {
+            color: #0077b6;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .notifications-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #f0f7ff;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .notification-time {
+            color: #999;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            background: #0077b6;
+            border-radius: 50%;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .notifications-footer {
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+
+        .view-all {
+            color: #0077b6;
+            text-decoration: none;
+        }
+
+        .view-all:hover {
+            text-decoration: underline;
+        }
+
+        .bg-red { background-color: #dc3545; }
+        .bg-orange { background-color: #fd7e14; }
+        .bg-green { background-color: #28a745; }
+        .bg-blue { background-color: #0077b6; }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="profile-toggle">
+            <i class="fas fa-user-circle"></i>
+        </button>
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Pesquisar medicamentos...">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" title="Notificações" id="notificationsBtn">
+                <i class="fas fa-bell"></i>
+                <span class="badge">3</span>
+            </button>
+            <div class="notifications-dropdown" id="notificationsDropdown">
+                <div class="notifications-header">
+                    <h3 class="notifications-title">Notificações</h3>
+                    <button class="mark-all-read">Marcar todas como lidas</button>
+                </div>
+                <div class="notifications-list">
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-red">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Estoque Crítico</h4>
+                            <p class="notification-message">Dipirona 500mg está com estoque abaixo do mínimo</p>
+                            <p class="notification-time">Há 5 minutos</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-orange">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Vencimento Próximo</h4>
+                            <p class="notification-message">5 medicamentos vencem em 30 dias</p>
+                            <p class="notification-time">Há 2 horas</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Pedido Recebido</h4>
+                            <p class="notification-message">Novo pedido de compra aprovado</p>
+                            <p class="notification-time">Há 3 horas</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                </div>
+                <div class="notifications-footer">
+                    <a href="notificacoes.html" class="view-all">Ver todas as notificações</a>
+                </div>
+            </div>
+        </div>
+        <button class="btn-primary" onclick="abrirModalNovoProduto()">
+            <i class="fas fa-plus"></i> Novo Medicamento
+        </button>
+    </header>
+
+    <!-- Menu Lateral -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="profile-info">
+                <i class="fas fa-user-circle"></i>
+                <span>Usuário</span>
+            </div>
+            <button class="close-sidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="menu-section">
+            <a href="home.html" class="">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <h3>GESTÃO DE FARMÁCIA</h3>
+            <a href="medicamentos.html" class="">
+                <i class="fas fa-pills"></i>
+                <span>Medicamentos</span>
+            </a>
+            <a href="armazem.html" class="">
+                <i class="fas fa-warehouse"></i>
+                <span>Armazém de medicamentos</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-industry"></i>
+                <span>Laboratórios</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>CONTROLE</h3>
+            <a href="movimentacoes.html">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Movimentações</span>
+            </a>
+            <a href="inventario.html">
+                <i class="fas fa-boxes"></i>
+                <span>Inventário</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>RELATÓRIOS</h3>
+            <a href="relatorios.html">
+                <i class="fas fa-chart-bar"></i>
+                <span>Relatórios</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>SISTEMA</h3>
+            <a href="#">
+                <i class="fas fa-users"></i>
+                <span>Usuários</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+            <a href="loginn.html">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </aside>
+
+    <main>
+        <div class="content">
+            <div class="page-header">
+                <h1>Gestão de Medicamentos</h1>
+            </div>
+
+            <div class="filters-section">
+                <div class="filter-group">
+                    <label for="filtroTipo">Tipo</label>
+                    <select id="filtroTipo">
+                        <option value="">Todos</option>
+                        <option value="Controlado">Controlado</option>
+                        <option value="Comum">Comum</option>
+                        <option value="Antibiótico">Antibiótico</option>
+                        <option value="Psicotrópico">Psicotrópico</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filtroLaboratorio">Laboratório</label>
+                    <select id="filtroLaboratorio">
+                        <option value="">Todos</option>
+                        <option value="EMS">EMS</option>
+                        <option value="Medley">Medley</option>
+                        <option value="Neo Química">Neo Química</option>
+                        <option value="Eurofarma">Eurofarma</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filtroStatus">Status</label>
+                    <select id="filtroStatus">
+                        <option value="">Todos</option>
+                        <option value="Ativo">Ativo</option>
+                        <option value="Inativo">Inativo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Medicamento</th>
+                            <th>Princípio Ativo</th>
+                            <th>Tipo</th>
+                            <th>Laboratório</th>
+                            <th>Lote</th>
+                            <th>Validade</th>
+                            <th>Estoque</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Modal Novo Medicamento -->
+        <div id="modalNovoProduto" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Novo Medicamento</h2>
+                    <button class="close-modal" onclick="closeModal('modalNovoProduto')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formProduto">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="codigo">Código</label>
+                                <input type="text" id="codigo" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="nome">Nome do Medicamento</label>
+                                <input type="text" id="nome" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="laboratorio">Laboratório</label>
+                                <input type="text" id="laboratorio" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tipo">Tipo</label>
+                                <select id="tipo" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="Controlado">Controlado</option>
+                                    <option value="Comum">Comum</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="concentracao">Concentração</label>
+                                <input type="text" id="concentracao" placeholder="Ex: 500mg" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="validade">Data de Validade</label>
+                                <input type="date" id="validade" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="quantidade">Quantidade</label>
+                                <input type="number" id="quantidade" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="preco">Preço (R$)</label>
+                                <input type="number" id="preco" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="closeModal('modalNovoProduto')">Cancelar</button>
+                    <button class="btn-primary" onclick="salvarProduto()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Adicionar HTML5 QR Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        // Dados de exemplo para medicamentos
+        const dadosMedicamentos = [
+            {
+                id: 1,
+                codigo: 'MED001',
+                nome: 'Dipirona 500mg',
+                tipo: 'Controlado',
+                laboratorio: 'Medley',
+                quantidade: 150,
+                status: 'Ativo',
+                validade: '2024-12-31'
+            },
+            {
+                id: 2,
+                codigo: 'MED002',
+                nome: 'Amoxicilina 500mg',
+                tipo: 'Controlado',
+                laboratorio: 'EMS',
+                quantidade: 80,
+                status: 'Ativo',
+                validade: '2024-10-15'
+            },
+            {
+                id: 3,
+                codigo: 'MED003',
+                nome: 'Paracetamol 750mg',
+                tipo: 'Comum',
+                laboratorio: 'Medley',
+                quantidade: 200,
+                status: 'Inativo',
+                validade: '2024-08-20'
+            }
+        ];
+
+        // Função para verificar validade
+        function verificarValidade(validade) {
+            const hoje = new Date();
+            const dataValidade = new Date(validade);
+            const diffMeses = (dataValidade - hoje) / (1000 * 60 * 60 * 24 * 30);
+            
+            if (dataValidade < hoje) {
+                return 'vencido';
+            } else if (diffMeses <= 3) {
+                return 'proximo-vencimento';
+            }
+            return 'normal';
+        }
+
+        // Função para renderizar a tabela
+        function renderizarTabela(dados) {
+            const tbody = document.querySelector('.data-table tbody');
+            tbody.innerHTML = '';
+
+            dados.forEach(med => {
+                const statusValidade = verificarValidade(med.validade);
+                const tr = document.createElement('tr');
+                tr.className = statusValidade;
+                
+                tr.innerHTML = `
+                    <td>${med.codigo}</td>
+                    <td>${med.nome}</td>
+                    <td>${med.principioAtivo}</td>
+                    <td><span class="badge ${med.tipo.toLowerCase()}">${med.tipo}</span></td>
+                    <td>${med.laboratorio}</td>
+                    <td>${med.lote}</td>
+                    <td>${formatarData(med.validade)}${statusValidade === 'vencido' ? ' <i class="fas fa-exclamation-triangle text-danger"></i>' : 
+                       statusValidade === 'proximo-vencimento' ? ' <i class="fas fa-exclamation-circle text-warning"></i>' : ''}</td>
+                    <td>${med.estoque} unid.${med.estoque <= med.estoqueMinimo ? ' <i class="fas fa-exclamation-circle text-warning"></i>' : ''}</td>
+                    <td><span class="badge status-${med.status}">${formatarStatus(med.status)}</span></td>
+                    <td>
+                        <button class="btn-icon" onclick="verDetalhes(${med.id})" title="Ver Detalhes"><i class="fas fa-eye"></i></button>
+                        <button class="btn-icon" onclick="editarProduto(${med.id})" title="Editar"><i class="fas fa-edit"></i></button>
+                        ${med.tipo === 'Controlado' || med.tipo === 'Psicotrópico' ? 
+                          `<button class="btn-icon" onclick="verReceitas(${med.id})" title="Receitas"><i class="fas fa-file-medical"></i></button>` : ''}
+                        <button class="btn-icon delete" onclick="excluirProduto(${med.id})" title="Excluir"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Atualizar contadores
+            atualizarContadores(dados);
+        }
+
+        // Função para atualizar contadores
+        function atualizarContadores(dados) {
+            const contadores = {
+                total: dados.length,
+                vencidos: 0,
+                proximoVencimento: 0,
+                estoqueBaixo: 0
+            };
+
+            dados.forEach(med => {
+                const statusValidade = verificarValidade(med.validade);
+                if (statusValidade === 'vencido') contadores.vencidos++;
+                if (statusValidade === 'proximo-vencimento') contadores.proximoVencimento++;
+                if (med.estoque <= med.estoqueMinimo) contadores.estoqueBaixo++;
+            });
+
+            // Remove o container existente se houver
+            const existingContainer = document.querySelector('.stats-container');
+            if (existingContainer) {
+                existingContainer.remove();
+            }
+
+            // Atualizar cards de estatísticas
+            document.querySelector('.content').insertAdjacentHTML('afterbegin', `
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <i class="fas fa-pills"></i>
+                        <div class="stat-info">
+                            <span class="stat-value">${contadores.total}</span>
+                            <span class="stat-label">Total de Medicamentos</span>
+                        </div>
+                    </div>
+                    <div class="stat-card ${contadores.vencidos > 0 ? 'warning' : ''}">
+                        <i class="fas fa-calendar-times"></i>
+                        <div class="stat-info">
+                            <span class="stat-value">${contadores.vencidos}</span>
+                            <span class="stat-label">Medicamentos Vencidos</span>
+                        </div>
+                    </div>
+                    <div class="stat-card ${contadores.proximoVencimento > 0 ? 'alert' : ''}">
+                        <i class="fas fa-clock"></i>
+                        <div class="stat-info">
+                            <span class="stat-value">${contadores.proximoVencimento}</span>
+                            <span class="stat-label">Próximos ao Vencimento</span>
+                        </div>
+                    </div>
+                    <div class="stat-card ${contadores.estoqueBaixo > 0 ? 'alert' : ''}">
+                        <i class="fas fa-box-open"></i>
+                        <div class="stat-info">
+                            <span class="stat-value">${contadores.estoqueBaixo}</span>
+                            <span class="stat-label">Estoque Baixo</span>
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+
+        // Função para filtrar medicamentos
+        function filtrarMedicamentos() {
+            const tipo = document.getElementById('filtroTipo').value;
+            const laboratorio = document.getElementById('filtroLaboratorio').value;
+            const status = document.getElementById('filtroStatus').value;
+            const searchTerm = document.querySelector('.search-input').value.toLowerCase();
+
+            const medicamentosFiltrados = dadosMedicamentos.filter(med => {
+                const matchTipo = tipo === '' || med.tipo.toLowerCase() === tipo.toLowerCase();
+                const matchLab = laboratorio === '' || med.laboratorio.toLowerCase() === laboratorio.toLowerCase();
+                const matchStatus = status === '' || med.status.toLowerCase() === status.toLowerCase();
+                const matchSearch = med.nome.toLowerCase().includes(searchTerm) ||
+                                  med.codigo.toLowerCase().includes(searchTerm);
+
+                return matchTipo && matchLab && matchStatus && matchSearch;
+            });
+
+            renderizarTabela(medicamentosFiltrados);
+            atualizarContadores(medicamentosFiltrados);
+        }
+
+        // Event listeners para os filtros
+        document.getElementById('filtroTipo').addEventListener('change', filtrarMedicamentos);
+        document.getElementById('filtroLaboratorio').addEventListener('change', filtrarMedicamentos);
+        document.getElementById('filtroStatus').addEventListener('change', filtrarMedicamentos);
+
+        // Atualizar a função de pesquisa para usar o filtro
+        document.querySelector('.search-input').addEventListener('input', (e) => {
+            filtrarMedicamentos();
+        });
+
+        // Função para formatar data
+        function formatarData(data) {
+            return new Date(data).toLocaleDateString('pt-BR');
+        }
+
+        // Função para formatar o status
+        function formatarStatus(status) {
+            const statusMap = {
+                'ativo': 'Ativo',
+                'inativo': 'Inativo',
+                'estoque-baixo': 'Estoque Baixo',
+                'proximo-vencimento': 'Próximo ao Vencimento'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Função para abrir o modal de novo produto
+        function abrirModalNovoProduto() {
+            showModal('modalNovoProduto');
+        }
+
+        // Event listener para pesquisa
+        document.querySelector('.search-input').addEventListener('input', (e) => {
+            filtrarMedicamentos();
+        });
+
+        // Controle do menu lateral
+        const toggleMenu = () => {
+            const sidebar = document.querySelector('.sidebar');
+            const main = document.querySelector('main');
+            sidebar.classList.toggle('show');
+            main.classList.toggle('sidebar-open');
+        };
+
+        // Event listeners para menu
+        document.querySelector('.profile-toggle').addEventListener('click', toggleMenu);
+        document.querySelector('.close-sidebar').addEventListener('click', toggleMenu);
+
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', (e) => {
+            const sidebar = document.querySelector('.sidebar');
+            const profileToggle = document.querySelector('.profile-toggle');
+            
+            if (!sidebar.contains(e.target) && 
+                !profileToggle.contains(e.target) && 
+                sidebar.classList.contains('show')) {
+                toggleMenu();
+            }
+        });
+
+        // Inicialização
+        window.addEventListener('load', () => {
+            renderizarTabela(dadosMedicamentos);
+            atualizarContadores(dadosMedicamentos);
+        });
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function verDetalhes(id) {
+            const produto = dadosMedicamentos.find(p => p.id === id);
+            alert(`Detalhes do medicamento ${id}:\n` +
+                  `Código: ${produto.codigo}\n` +
+                  `Nome: ${produto.nome}\n` +
+                  `Princípio Ativo: ${produto.principioAtivo}\n` +
+                  `Tipo: ${produto.tipo}\n` +
+                  `Laboratório: ${produto.laboratorio}\n` +
+                  `Lote: ${produto.lote}\n` +
+                  `Validade: ${formatarData(produto.validade)}\n` +
+                  `Estoque: ${produto.estoque}\n` +
+                  `Estoque Mínimo: ${produto.estoqueMinimo}\n` +
+                  `Preço: R$ ${produto.preco.toFixed(2)}\n` +
+                  `Status: ${formatarStatus(produto.status)}`);
+        }
+
+        function editarProduto(id) {
+            const produto = dadosMedicamentos.find(m => m.id === id);
+            alert(`Editando medicamento ${id} - ${produto.nome}`);
+            // Implementar edição no modal
+        }
+
+        function excluirProduto(id) {
+            if (confirm('Tem certeza que deseja excluir este medicamento?')) {
+                const index = dadosMedicamentos.findIndex(p => p.id === id);
+                if (index > -1) {
+                    dadosMedicamentos.splice(index, 1);
+                    aplicarFiltros();
+                }
+            }
+        }
+
+        function salvarProduto() {
+            // Pegar todos os valores do formulário
+            const codigo = document.getElementById('codigo').value;
+            const nome = document.getElementById('nome').value;
+            const laboratorio = document.getElementById('laboratorio').value;
+            const tipo = document.getElementById('tipo').value;
+            const concentracao = document.getElementById('concentracao').value;
+            const validade = document.getElementById('validade').value;
+            const quantidade = document.getElementById('quantidade').value;
+            const preco = document.getElementById('preco').value;
+
+            // Validar campos obrigatórios
+            if (!codigo || !nome || !laboratorio || !tipo || !concentracao || !validade || !quantidade || !preco) {
+                alert('Por favor, preencha todos os campos obrigatórios');
+                return;
+            }
+
+            // Criar objeto do medicamento
+            const medicamento = {
+                id: Date.now(), // Usar timestamp como ID único
+                codigo,
+                nome,
+                laboratorio,
+                tipo,
+                concentracao,
+                validade,
+                quantidade: parseInt(quantidade),
+                preco: parseFloat(preco),
+                status: 'ativo',
+                dataCadastro: new Date().toISOString()
+            };
+
+            // Buscar medicamentos existentes
+            let medicamentos = JSON.parse(localStorage.getItem('medicamentos') || '[]');
+            
+            // Verificar se já existe um medicamento com o mesmo código
+            const medicamentoExistente = medicamentos.find(m => m.codigo === codigo);
+            if (medicamentoExistente) {
+                alert('Já existe um medicamento cadastrado com este código');
+                return;
+            }
+
+            // Adicionar novo medicamento
+            medicamentos.push(medicamento);
+            
+            // Salvar no localStorage
+            localStorage.setItem('medicamentos', JSON.stringify(medicamentos));
+
+            // Atualizar a tabela
+            renderizarTabela(medicamentos);
+            
+            // Atualizar contadores
+            atualizarContadores(medicamentos);
+
+            // Fechar o modal
+            closeModal('modalNovoProduto');
+            
+            // Limpar o formulário
+            document.getElementById('formProduto').reset();
+
+            // Mostrar mensagem de sucesso
+            alert('Medicamento cadastrado com sucesso!');
+        }
+
+        // Função para carregar dados iniciais
+        function carregarDados() {
+            const medicamentos = JSON.parse(localStorage.getItem('medicamentos') || '[]');
+            renderizarTabela(medicamentos);
+            atualizarContadores(medicamentos);
+        }
+
+        // Carregar dados quando a página for carregada
+        document.addEventListener('DOMContentLoaded', carregarDados);
+
+        // Funcionalidade das notificações
+        const notificationsBtn = document.getElementById('notificationsBtn');
+        const notificationsDropdown = document.getElementById('notificationsDropdown');
+        
+        notificationsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationsDropdown.classList.toggle('show');
+        });
+
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (!notificationsDropdown.contains(e.target) && 
+                !notificationsBtn.contains(e.target)) {
+                notificationsDropdown.classList.remove('show');
+            }
+        });
+
+        // Marcar todas como lidas
+        document.querySelector('.mark-all-read').addEventListener('click', () => {
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.classList.remove('unread');
+                const dot = item.querySelector('.notification-dot');
+                if (dot) dot.remove();
+            });
+            document.querySelector('.badge').textContent = '0';
+        });
+
+        // Marcar individual como lida
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (item.classList.contains('unread')) {
+                    item.classList.remove('unread');
+                    const dot = item.querySelector('.notification-dot');
+                    if (dot) dot.remove();
+                    
+                    const badge = document.querySelector('.badge');
+                    const currentCount = parseInt(badge.textContent);
+                    badge.textContent = currentCount - 1;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

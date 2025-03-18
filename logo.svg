@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="80" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .text { font-family: Arial, sans-serif; font-weight: bold; }
+        .primary { fill: #0077b6; }
+        .secondary { fill: #00b4d8; }
+    </style>
+    <g transform="translate(10,45)">
+        <path class="secondary" d="M25,0 C25,-12.5 12.5,-25 0,-25 C-12.5,-25 -25,-12.5 -25,0 C-25,12.5 -12.5,25 0,25 C12.5,25 25,12.5 25,0 Z" />
+        <path class="primary" d="M-10,-10 L10,-10 L10,10 L-10,10 Z" />
+        <text x="40" y="10" class="text primary" font-size="24">PharmaSys</text>
+    </g>
+</svg>

@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Armazém de Medicamentos - Sistema de Gestão de Farmácia</title>
+    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Estilos base */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            background-color: var(--light-bg);
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Header e Menu Lateral conforme padrão */
+        header {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 60px;
+            background: white;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 100;
+            transition: left 0.3s ease;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--primary-color);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: -250px;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 0;
+            padding: 80px 2rem 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.shifted {
+            margin-left: 250px;
+        }
+
+        /* Estilos específicos do Armazém */
+        .content-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stock-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card-icon.blue { background: #3498db; }
+        .card-icon.red { background: #e74c3c; }
+        .card-icon.orange { background: #f39c12; }
+
+        .card-content {
+            flex: 1;
+        }
+
+        .summary-card h3 {
+            margin: 0 0 0.5rem 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .summary-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+            line-height: 1;
+        }
+
+        .stock-table {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .stock-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stock-table th,
+        .stock-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stock-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .stock-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-action {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+        }
+
+        .stock-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .status-ok { 
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .status-low {
+            background: #fff3cd;
+            color: #664d03;
+        }
+
+        .status-critical {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
+        }
+
+        .btn-add {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-add:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-add i {
+            font-size: 1.2rem;
+        }
+
+        /* Estilo do ícone de notificações */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .btn-icon {
+            position: relative;
+            background: transparent;
+            border: none;
+            color: #2c3e50;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-icon i {
+            font-size: 1.25rem;
+        }
+
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Estilos das notificações */
+        .notifications-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 320px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-top: 10px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .notifications-dropdown.show {
+            display: block;
+        }
+
+        .notifications-header {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notifications-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+
+        .mark-all-read {
+            color: #0077b6;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .notifications-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #f0f7ff;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .notification-time {
+            color: #999;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            background: #0077b6;
+            border-radius: 50%;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* Modal de Novo Item */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .modal-footer {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .btn-cancel {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header conforme padrão -->
+    <header>
+        <button class="profile-toggle">
+            <i class="fas fa-user-circle"></i>
+        </button>
+        <div class="header-actions">
+            <button class="btn-icon" title="Notificações" id="notificationsBtn">
+                <i class="fas fa-bell"></i>
+                <span class="badge">3</span>
+            </button>
+            <div class="notifications-dropdown" id="notificationsDropdown">
+                <div class="notifications-header">
+                    <h3 class="notifications-title">Notificações</h3>
+                    <button class="mark-all-read">Marcar todas como lidas</button>
+                </div>
+                <div class="notifications-list">
+                    <!-- Preenchido via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu Lateral conforme padrão -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="profile-info">
+                <i class="fas fa-user-circle"></i>
+                <span>Usuário</span>
+            </div>
+            <button class="close-sidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="menu-section">
+            <a href="home.html" class="">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <h3>GESTÃO DE FARMÁCIA</h3>
+            <a href="medicamentos.html" class="">
+                <i class="fas fa-pills"></i>
+                <span>Medicamentos</span>
+            </a>
+            <a href="armazem.html">
+                <i class="fas fa-warehouse"></i>
+                <span>Armazém de medicamentos</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-industry"></i>
+                <span>Laboratórios</span>
+            </a>
+        </div>
+    
+        <div class="menu-section">
+            <h3>CONTROLE</h3>
+            <a href="movimentacoes.html">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Movimentações</span>
+            </a>
+            <a href="inventario.html">
+                <i class="fas fa-boxes"></i>
+                <span>Inventário</span>
+            </a>
+        </div>
+    
+        <div class="menu-section">
+            <h3>RELATÓRIOS</h3>
+            <a href="relatorios.html">
+                <i class="fas fa-chart-bar"></i>
+                <span>Relatórios</span>
+            </a>
+        </div>
+    
+        <div class="menu-section">
+            <h3>SISTEMA</h3>
+            <a href="usuarios.html">
+                <i class="fas fa-users"></i>
+                <span>Usuários</span>
+            </a>
+            <a href="configuracoes.html">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+            <a href="loginn.html">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <div class="main-content">
+        <div class="content-header">
+            <h1>Armazém de Medicamentos</h1>
+            <button class="btn-add" onclick="abrirModalNovo()">
+                <i class="fas fa-plus"></i>
+                Novo Item
+            </button>
+        </div>
+
+        <div class="stock-summary">
+            <div class="summary-card">
+                <div class="card-icon blue">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Total de Itens</h3>
+                    <div class="value" id="totalItems">0</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="card-icon red">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Estoque Crítico</h3>
+                    <div class="value" id="criticalStock">0</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="card-icon orange">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Próximo ao Vencimento</h3>
+                    <div class="value" id="nearExpiry">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <input type="text" class="filter-input" id="searchInput" placeholder="Pesquisar por nome ou código...">
+            <select class="filter-input" id="statusFilter">
+                <option value="">Todos os Status</option>
+                <option value="ok">Estoque OK</option>
+                <option value="low">Estoque Baixo</option>
+                <option value="critical">Estoque Crítico</option>
+            </select>
+        </div>
+
+        <div class="stock-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nome</th>
+                        <th>Quantidade</th>
+                        <th>Status</th>
+                        <th>Validade</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="stockTableBody">
+                    <!-- Preenchido via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal de Novo Item -->
+    <div class="modal" id="newItemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Novo Item</h2>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <form id="newItemForm">
+                <div class="form-group">
+                    <label for="itemName">Nome do Medicamento</label>
+                    <input type="text" id="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemCode">Código</label>
+                    <input type="text" id="itemCode" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemQuantity">Quantidade</label>
+                    <input type="number" id="itemQuantity" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="itemMinQuantity">Quantidade Mínima</label>
+                    <input type="number" id="itemMinQuantity" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="itemExpiry">Data de Validade</label>
+                    <input type="date" id="itemExpiry" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" id="cancelNewItem">Cancelar</button>
+                    <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Controle do menu lateral
+        function toggleMenu() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.querySelector('.main-content').classList.toggle('shifted');
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Menu toggle
+            document.querySelector('.profile-toggle').addEventListener('click', toggleMenu);
+            document.querySelector('.close-sidebar').addEventListener('click', toggleMenu);
+
+            // Notificações
+            const notificationsBtn = document.getElementById('notificationsBtn');
+            const notificationsDropdown = document.getElementById('notificationsDropdown');
+
+            notificationsBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notificationsDropdown.classList.toggle('show');
+                updateNotifications();
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!notificationsDropdown.contains(e.target)) {
+                    notificationsDropdown.classList.remove('show');
+                }
+            });
+        });
+
+        // Gerenciamento de notificações
+        class NotificationManager {
+            constructor() {
+                this.readNotifications = [];
+            }
+
+            markAsRead(notificationId) {
+                if (!this.readNotifications.includes(notificationId)) {
+                    this.readNotifications.push(notificationId);
+                }
+            }
+
+            isRead(notificationId) {
+                return this.readNotifications.includes(notificationId);
+            }
+
+            getUnreadCount() {
+                return document.querySelectorAll('.notification-item.unread').length;
+            }
+        }
+
+        const notificationManager = new NotificationManager();
+
+        // Função para atualizar notificações
+        function updateNotifications() {
+            const notifications = [
+                {
+                    id: 'notif1',
+                    title: 'Estoque Crítico',
+                    message: 'Dipirona 500mg está com estoque abaixo do mínimo',
+                    time: 'Há 5 minutos',
+                    icon: 'exclamation-circle',
+                    type: 'danger'
+                },
+                {
+                    id: 'notif2',
+                    title: 'Vencimento Próximo',
+                    message: '5 medicamentos vencem em 30 dias',
+                    time: 'Há 2 horas',
+                    icon: 'clock',
+                    type: 'warning'
+                },
+                {
+                    id: 'notif3',
+                    title: 'Entrada de Estoque',
+                    message: 'Nova entrada de Amoxicilina registrada',
+                    time: 'Há 3 horas',
+                    icon: 'box',
+                    type: 'success'
+                }
+            ];
+
+            const notificationsList = document.querySelector('.notifications-list');
+            notificationsList.innerHTML = '';
+            let unreadCount = 0;
+
+            notifications.forEach(notif => {
+                const isUnread = !notificationManager.isRead(notif.id);
+                if (isUnread) unreadCount++;
+
+                const notificationHtml = `
+                    <div class="notification-item ${isUnread ? 'unread' : ''}" data-id="${notif.id}">
+                        <div class="notification-icon bg-${notif.type === 'danger' ? 'red' : notif.type === 'warning' ? 'orange' : 'green'}">
+                            <i class="fas fa-${notif.icon}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">${notif.title}</h4>
+                            <p class="notification-message">${notif.message}</p>
+                            <p class="notification-time">${notif.time}</p>
+                        </div>
+                        ${isUnread ? '<div class="notification-dot"></div>' : ''}
+                    </div>
+                `;
+                notificationsList.innerHTML += notificationHtml;
+            });
+
+            document.querySelector('.badge').textContent = unreadCount;
+        }
+
+        // Event listeners para notificações
+        document.getElementById('notificationsBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.querySelector('.notifications-dropdown').classList.toggle('show');
+            updateNotifications();
+        });
+
+        document.querySelector('.mark-all-read').addEventListener('click', () => {
+            document.querySelectorAll('.notification-item').forEach(item => {
+                const id = item.getAttribute('data-id');
+                notificationManager.markAsRead(id);
+            });
+            updateNotifications();
+        });
+
+        document.addEventListener('click', (e) => {
+            const dropdown = document.querySelector('.notifications-dropdown');
+            const btn = document.getElementById('notificationsBtn');
+            if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Funções do armazém
+        function editarItem(id) {
+            const item = medicamentos.find(m => m.codigo === id);
+            if (item) {
+                alert(`Editando item: ${item.nome}`);
+                // Aqui você implementaria a lógica de edição
+            }
+        }
+
+        function excluirItem(id) {
+            if (confirm('Tem certeza que deseja excluir este item?')) {
+                const index = medicamentos.findIndex(m => m.codigo === id);
+                if (index > -1) {
+                    medicamentos.splice(index, 1);
+                    atualizarTabela();
+                    atualizarContadores();
+                }
+            }
+        }
+
+        function abrirModalNovo() {
+            // Implementar abertura do modal
+            document.getElementById('newItemModal').classList.add('active');
+        }
+
+        function atualizarTabela() {
+            const tbody = document.getElementById('stockTableBody');
+            tbody.innerHTML = '';
+
+            medicamentos.forEach(item => {
+                const row = `
+                    <tr>
+                        <td>${item.codigo}</td>
+                        <td>${item.nome}</td>
+                        <td>${item.quantidade}</td>
+                        <td>
+                            <span class="stock-status ${item.quantidade < 50 ? 'status-critical' : item.quantidade < 100 ? 'status-low' : 'status-ok'}">
+                                ${item.quantidade < 50 ? 'Crítico' : item.quantidade < 100 ? 'Baixo' : 'OK'}
+                            </span>
+                        </td>
+                        <td>${new Date(item.validade).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn-action btn-edit" onclick="editarItem('${item.codigo}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-action btn-delete" onclick="excluirItem('${item.codigo}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function atualizarContadores() {
+            document.getElementById('totalItems').textContent = medicamentos.length;
+            document.getElementById('criticalStock').textContent = medicamentos.filter(m => m.quantidade < 50).length;
+            document.getElementById('nearExpiry').textContent = medicamentos.filter(m => {
+                const validade = new Date(m.validade);
+                const hoje = new Date();
+                const diasAteVencimento = Math.floor((validade - hoje) / (1000 * 60 * 60 * 24));
+                return diasAteVencimento <= 30;
+            }).length;
+        }
+
+        // Exemplo de dados
+        const medicamentos = [
+            {
+                codigo: 'MED001',
+                nome: 'Paracetamol 500mg',
+                quantidade: 1500,
+                validade: '2024-12-31',
+            },
+            // Adicionar mais medicamentos conforme necessário
+        ];
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            atualizarTabela();
+            atualizarContadores();
+            updateNotifications();
+        });
+
+        // Funcionalidade do botão Novo Item
+        const newItemBtn = document.querySelector('.btn-add');
+        const modal = document.getElementById('newItemModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelNewItem');
+        const newItemForm = document.getElementById('newItemForm');
+
+        newItemBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+        });
+
+        function closeModalHandler() {
+            modal.classList.remove('active');
+            newItemForm.reset();
+        }
+
+        closeModal.addEventListener('click', closeModalHandler);
+        cancelBtn.addEventListener('click', closeModalHandler);
+
+        // Fechar modal ao clicar fora
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModalHandler();
+            }
+        });
+
+        // Manipular envio do formulário
+        newItemForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const newItem = {
+                nome: document.getElementById('itemName').value,
+                codigo: document.getElementById('itemCode').value,
+                quantidade: parseInt(document.getElementById('itemQuantity').value),
+                validade: document.getElementById('itemExpiry').value
+            };
+
+            // Adicionar à tabela
+            const table = document.querySelector('.stock-table tbody');
+            const row = document.createElement('tr');
+            
+            const status = newItem.quantidade <= 50 ? 'critical' : 
+                          newItem.quantidade <= 100 ? 'low' : 'ok';
+
+            row.innerHTML = `
+                <td>${newItem.codigo}</td>
+                <td>${newItem.nome}</td>
+                <td class="status-cell ${status}">
+                    <span class="status-indicator"></span>
+                    ${newItem.quantidade}
+                </td>
+                <td>${newItem.validade}</td>
+                <td class="actions">
+                    <button class="btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="btn-delete" title="Excluir"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+
+            table.appendChild(row);
+
+            // Atualizar contadores
+            atualizarContadores();
+
+            // Fechar modal
+            closeModalHandler();
+
+            // Adicionar notificação se estoque estiver crítico
+            if (status === 'critical') {
+                addNotification(`Estoque crítico: ${newItem.nome}`);
+            }
+        });
+
+        // Função de busca
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', filterTable);
+
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const rows = document.querySelectorAll('.stock-table tbody tr');
+
+            rows.forEach(row => {
+                const code = row.cells[0].textContent.toLowerCase();
+                const name = row.cells[1].textContent.toLowerCase();
+                const statusCell = row.cells[2];
+                const status = statusCell.classList.contains('critical') ? 'critical' :
+                             statusCell.classList.contains('low') ? 'low' : 'ok';
+
+                const matchesSearch = code.includes(searchTerm) || name.includes(searchTerm);
+                const matchesStatus = !statusFilter || status === statusFilter;
+
+                row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

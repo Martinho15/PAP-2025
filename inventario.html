@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Gestão de Farmácia</title>
+    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0.5rem 0;
+        }
+
+        .card-trend {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .trend-up { color: #28a745; }
+        .trend-down { color: #dc3545; }
+
+        .bg-blue { background: #0077b6; }
+        .bg-green { background: #28a745; }
+        .bg-orange { background: #fd7e14; }
+        .bg-red { background: #dc3545; }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chart-filter {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-filter.active {
+            background: #0077b6;
+            color: white;
+            border-color: #0077b6;
+        }
+
+        .recent-activities {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+
+        .activity-time {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .welcome-message {
+            margin-bottom: 2rem;
+        }
+
+        .welcome-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .welcome-subtitle {
+            color: #666;
+            margin: 0;
+        }
+
+        .header-actions {
+            position: relative;
+        }
+
+        .notifications-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 320px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .notifications-dropdown.show {
+            display: block;
+        }
+
+        .notifications-header {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notifications-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+
+        .mark-all-read {
+            color: #0077b6;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .notifications-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #f0f7ff;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .notification-time {
+            color: #999;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            background: #0077b6;
+            border-radius: 50%;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .notifications-footer {
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+
+        .view-all {
+            color: #0077b6;
+            text-decoration: none;
+        }
+
+        .view-all:hover {
+            text-decoration: underline;
+        }
+
+        .bg-red { background-color: #dc3545; }
+        .bg-orange { background-color: #fd7e14; }
+        .bg-green { background-color: #28a745; }
+        .bg-blue { background-color: #0077b6; }
+
+        /* Estilos específicos para a página de inventário */
+        .inventory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn-new-count {
+            background: #0077b6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-new-count:hover {
+            background: #005f92;
+        }
+
+        .inventory-filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .inventory-table {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .inventory-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .inventory-table th,
+        .inventory-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .inventory-table th {
+            background: #f8f9fa;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .inventory-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-normal {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #664d03;
+        }
+
+        .status-critical {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-action {
+            background: none;
+            border: none;
+            color: #0077b6;
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .btn-action:hover {
+            color: #005f92;
+        }
+
+        /* Modal de Contagem */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .btn-primary {
+            background: #0077b6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+        }
+
+        .btn-primary:hover {
+            background: #005f92;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="profile-toggle">
+            <i class="fas fa-user-circle"></i>
+        </button>
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Pesquisar...">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" title="Notificações" id="notificationsBtn">
+                <i class="fas fa-bell"></i>
+                <span class="badge">3</span>
+            </button>
+            <div class="notifications-dropdown" id="notificationsDropdown">
+                <div class="notifications-header">
+                    <h3 class="notifications-title">Notificações</h3>
+                    <button class="mark-all-read">Marcar todas como lidas</button>
+                </div>
+                <div class="notifications-list">
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-red">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Alerta de Sistema</h4>
+                            <p class="notification-message">3 medicamentos precisam de atenção imediata</p>
+                            <p class="notification-time">Agora</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-orange">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Relatório Diário</h4>
+                            <p class="notification-message">Novo relatório de vendas disponível</p>
+                            <p class="notification-time">Há 20 minutos</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-green">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Tarefas Concluídas</h4>
+                            <p class="notification-message">Todas as tarefas do dia foram finalizadas</p>
+                            <p class="notification-time">Há 1 hora</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                </div>
+                <div class="notifications-footer">
+                    <a href="notificacoes.html" class="view-all">Ver todas as notificações</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+<!-- Menu Lateral -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="profile-info">
+            <i class="fas fa-user-circle"></i>
+            <span>Usuário</span>
+        </div>
+        <button class="close-sidebar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="menu-section">
+        <a href="home.html" class="">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <h3>GESTÃO DE FARMÁCIA</h3>
+        <a href="medicamentos.html" class="">
+            <i class="fas fa-pills"></i>
+            <span>Medicamentos</span>
+        </a>
+        <a href="armazem.html">
+            <i class="fas fa-warehouse"></i>
+            <span>Armazém de medicamentos</span>
+        </a>
+        <a href="#">
+            <i class="fas fa-industry"></i>
+            <span>Laboratórios</span>
+        </a>
+    </div>
+
+    <div class="menu-section">
+        <h3>CONTROLE</h3>
+        <a href="movimentacoes.html">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Movimentações</span>
+        </a>
+        <a href="inventario.html">
+            <i class="fas fa-boxes"></i>
+            <span>Inventário</span>
+        </a>
+    </div>
+
+    <div class="menu-section">
+        <h3>RELATÓRIOS</h3>
+        <a href="relatorios.html">
+            <i class="fas fa-chart-bar"></i>
+            <span>Relatórios</span>
+        </a>
+    </div>
+
+    <div class="menu-section">
+        <h3>SISTEMA</h3>
+        <a href="#">
+            <i class="fas fa-users"></i>
+            <span>Usuários</span>
+        </a>
+        <a href="#">
+            <i class="fas fa-cog"></i>
+            <span>Configurações</span>
+        </a>
+        <a href="loginn.html">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Sair</span>
+        </a>
+    </div>
+</aside>
+    <main>
+        <div class="content">
+            <div class="inventory-header">
+                <h1>Inventário</h1>
+                <button class="btn-new-count" onclick="abrirModalContagem()">
+                    <i class="fas fa-plus"></i>
+                    Nova Contagem
+                </button>
+            </div>
+
+            <div class="inventory-filters">
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="filterStatus">
+                            <option value="">Todos</option>
+                            <option value="normal">Normal</option>
+                            <option value="warning">Atenção</option>
+                            <option value="critical">Crítico</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Categoria</label>
+                        <select id="filterCategory">
+                            <option value="">Todas</option>
+                            <option value="analgesicos">Analgésicos</option>
+                            <option value="antibioticos">Antibióticos</option>
+                            <option value="antialergicos">Antialérgicos</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Data da Contagem</label>
+                        <input type="date" id="filterDate">
+                    </div>
+                    <div class="filter-group">
+                        <label>Pesquisar</label>
+                        <input type="text" id="searchInput" placeholder="Digite para pesquisar...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="inventory-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Medicamento</th>
+                            <th>Categoria</th>
+                            <th>Qtd. Sistema</th>
+                            <th>Qtd. Física</th>
+                            <th>Mínimo</th>
+                            <th>Última Contagem</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody">
+                        <!-- Preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Contagem -->
+    <div class="modal" id="modalContagem">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Nova Contagem de Inventário</h2>
+                <button class="btn-close" onclick="fecharModalContagem()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="modal-form" id="formContagem">
+                <div class="form-group">
+                    <label>Medicamento</label>
+                    <input type="text" id="medicamentoCounting" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Quantidade no Sistema</label>
+                    <input type="number" id="qtdSistema" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Quantidade Física</label>
+                    <input type="number" id="qtdFisica" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Observações</label>
+                    <textarea id="observacoes" placeholder="Digite suas observações aqui..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="fecharModalContagem()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Contagem</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        // Controle do menu lateral
+        const toggleMenu = () => {
+            const sidebar = document.querySelector('.sidebar');
+            const main = document.querySelector('main');
+            sidebar.classList.toggle('show');
+            main.classList.toggle('sidebar-open');
+        };
+
+        // Event listeners para menu
+        document.querySelector('.profile-toggle').addEventListener('click', toggleMenu);
+        document.querySelector('.close-sidebar').addEventListener('click', toggleMenu);
+
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', (e) => {
+            const sidebar = document.querySelector('.sidebar');
+            const profileToggle = document.querySelector('.profile-toggle');
+            
+            if (!sidebar.contains(e.target) && 
+                !profileToggle.contains(e.target) && 
+                sidebar.classList.contains('show')) {
+                toggleMenu();
+            }
+        });
+
+        // Função para formatar valores em Kwanza
+        function formatKwanza(value) {
+            return new Intl.NumberFormat('pt-AO', {
+                style: 'currency',
+                currency: 'AOA',
+                minimumFractionDigits: 2
+            }).format(value);
+        }
+
+        // Configuração do gráfico
+        const options = {
+            series: [{
+                name: 'Vendas',
+                data: [31000, 40000, 28000, 51000, 42000, 109000, 100000]
+            }, {
+                name: 'Estoque',
+                data: [11000, 32000, 45000, 32000, 34000, 52000, 41000]
+            }],
+            chart: {
+                height: 300,
+                type: 'area',
+                toolbar: {
+                    show: false
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth'
+            },
+            xaxis: {
+                type: 'datetime',
+                categories: [
+                    "2024-02-12T00:00:00.000Z",
+                    "2024-02-13T00:00:00.000Z",
+                    "2024-02-14T00:00:00.000Z",
+                    "2024-02-15T00:00:00.000Z",
+                    "2024-02-16T00:00:00.000Z",
+                    "2024-02-17T00:00:00.000Z",
+                    "2024-02-18T00:00:00.000Z"
+                ]
+            },
+            yaxis: {
+                labels: {
+                    formatter: function (value) {
+                        return formatKwanza(value);
+                    }
+                }
+            },
+            tooltip: {
+                x: {
+                    format: 'dd/MM/yy'
+                },
+                y: {
+                    formatter: function(value) {
+                        return formatKwanza(value);
+                    }
+                }
+            },
+            colors: ['#0077b6', '#28a745']
+        };
+
+        const chart = new ApexCharts(document.querySelector("#mainChart"), options);
+        chart.render();
+
+        // Filtros do gráfico
+        document.querySelectorAll('.chart-filter').forEach(filter => {
+            filter.addEventListener('click', () => {
+                document.querySelectorAll('.chart-filter').forEach(f => f.classList.remove('active'));
+                filter.classList.add('active');
+                // Aqui você pode adicionar a lógica para atualizar o gráfico com base no filtro
+            });
+        });
+
+        // Gerenciamento de estado das notificações
+        class NotificationManager {
+            constructor() {
+                this.storageKey = 'pharmacyNotifications';
+                this.readNotifications = this.getReadNotifications();
+            }
+
+            getReadNotifications() {
+                const stored = localStorage.getItem(this.storageKey);
+                return stored ? JSON.parse(stored) : [];
+            }
+
+            markAsRead(notificationId) {
+                if (!this.readNotifications.includes(notificationId)) {
+                    this.readNotifications.push(notificationId);
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.readNotifications));
+                }
+            }
+
+            isRead(notificationId) {
+                return this.readNotifications.includes(notificationId);
+            }
+
+            getUnreadCount() {
+                return notifications.filter(n => !this.isRead(n.id)).length;
+            }
+        }
+
+        const notificationManager = new NotificationManager();
+
+        // Atualizar notificações na página inicial
+        function updateNotifications() {
+            const notifications = [
+                {
+                    id: 1,
+                    title: 'Estoque Crítico: Dipirona',
+                    message: 'Estoque abaixo do mínimo',
+                    icon: 'fas fa-exclamation-circle',
+                    type: 'danger'
+                },
+                {
+                    id: 2,
+                    title: 'Vencimento Próximo',
+                    message: '5 medicamentos próximos',
+                    icon: 'fas fa-clock',
+                    type: 'warning'
+                },
+                {
+                    id: 3,
+                    title: 'Nova Venda Registrada',
+                    message: 'Pedido #12345 aprovado',
+                    icon: 'fas fa-check-circle',
+                    type: 'success'
+                }
+            ];
+
+            const container = document.querySelector('.notifications-content');
+            container.innerHTML = '';
+
+            notifications.forEach(notification => {
+                if (!notificationManager.isRead(notification.id)) {
+                    const html = `
+                        <div class="notification-item" data-id="${notification.id}">
+                            <div class="notification-icon ${notification.type}">
+                                <i class="${notification.icon}"></i>
+                            </div>
+                            <div class="notification-info">
+                                <div class="notification-title">${notification.title}</div>
+                                <div class="notification-message">${notification.message}</div>
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                }
+            });
+
+            // Atualizar contador
+            const count = notificationManager.getUnreadCount();
+            const badge = document.querySelector('.badge');
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline' : 'none';
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', updateNotifications);
+
+        document.querySelector('.notifications-content').addEventListener('click', (e) => {
+            const item = e.target.closest('.notification-item');
+            if (item) {
+                const id = parseInt(item.dataset.id);
+                notificationManager.markAsRead(id);
+                updateNotifications();
+            }
+        });
+
+        // Funcionalidade das notificações
+        const notificationsBtn = document.getElementById('notificationsBtn');
+        const notificationsDropdown = document.getElementById('notificationsDropdown');
+        
+        notificationsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationsDropdown.classList.toggle('show');
+        });
+
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (!notificationsDropdown.contains(e.target) && 
+                !notificationsBtn.contains(e.target)) {
+                notificationsDropdown.classList.remove('show');
+            }
+        });
+
+        // Marcar todas como lidas
+        document.querySelector('.mark-all-read').addEventListener('click', () => {
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.classList.remove('unread');
+                const dot = item.querySelector('.notification-dot');
+                if (dot) dot.remove();
+            });
+            document.querySelector('.badge').textContent = '0';
+        });
+
+        // Marcar individual como lida
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (item.classList.contains('unread')) {
+                    item.classList.remove('unread');
+                    const dot = item.querySelector('.notification-dot');
+                    if (dot) dot.remove();
+                    
+                    const badge = document.querySelector('.badge');
+                    const currentCount = parseInt(badge.textContent);
+                    badge.textContent = currentCount - 1;
+                }
+            });
+        });
+
+        // Dados de exemplo para o inventário
+        const inventarioData = [
+            {
+                codigo: "MED001",
+                medicamento: "Paracetamol 500mg",
+                categoria: "Analgésicos",
+                qtdSistema: 1000,
+                qtdFisica: 980,
+                minimo: 200,
+                ultimaContagem: "2024-03-07",
+                status: "normal"
+            },
+            {
+                codigo: "MED002",
+                medicamento: "Dipirona 1g",
+                categoria: "Analgésicos",
+                qtdSistema: 150,
+                qtdFisica: 150,
+                minimo: 200,
+                ultimaContagem: "2024-03-07",
+                status: "critical"
+            },
+            {
+                codigo: "MED003",
+                medicamento: "Amoxicilina 500mg",
+                categoria: "Antibióticos",
+                qtdSistema: 300,
+                qtdFisica: 280,
+                minimo: 150,
+                ultimaContagem: "2024-03-07",
+                status: "warning"
+            }
+        ];
+
+        // Função para renderizar a tabela
+        function renderizarTabela(data) {
+            const tbody = document.getElementById('inventoryTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.codigo}</td>
+                    <td>${item.medicamento}</td>
+                    <td>${item.categoria}</td>
+                    <td>${item.qtdSistema}</td>
+                    <td>${item.qtdFisica}</td>
+                    <td>${item.minimo}</td>
+                    <td>${formatarData(item.ultimaContagem)}</td>
+                    <td>
+                        <span class="status-badge status-${item.status}">
+                            ${getStatusText(item.status)}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-action" onclick="abrirModalContagem('${item.codigo}')" title="Nova Contagem">
+                                <i class="fas fa-clipboard-check"></i>
+                            </button>
+                            <button class="btn-action" onclick="visualizarHistorico('${item.codigo}')" title="Histórico">
+                                <i class="fas fa-history"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Funções auxiliares
+        function formatarData(data) {
+            return new Date(data).toLocaleDateString('pt-BR');
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                normal: 'Normal',
+                warning: 'Atenção',
+                critical: 'Crítico'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Controle do modal
+        function abrirModalContagem(codigo) {
+            const item = inventarioData.find(i => i.codigo === codigo);
+            if (item) {
+                document.getElementById('medicamentoCounting').value = item.medicamento;
+                document.getElementById('qtdSistema').value = item.qtdSistema;
+                document.getElementById('qtdFisica').value = '';
+                document.getElementById('observacoes').value = '';
+                document.getElementById('modalContagem').classList.add('active');
+            }
+        }
+
+        function fecharModalContagem() {
+            document.getElementById('modalContagem').classList.remove('active');
+        }
+
+        // Filtros e pesquisa
+        function aplicarFiltros() {
+            const status = document.getElementById('filterStatus').value;
+            const categoria = document.getElementById('filterCategory').value;
+            const data = document.getElementById('filterDate').value;
+            const pesquisa = document.getElementById('searchInput').value.toLowerCase();
+
+            let dadosFiltrados = [...inventarioData];
+
+            if (status) {
+                dadosFiltrados = dadosFiltrados.filter(item => item.status === status);
+            }
+
+            if (categoria) {
+                dadosFiltrados = dadosFiltrados.filter(item => item.categoria.toLowerCase() === categoria);
+            }
+
+            if (data) {
+                dadosFiltrados = dadosFiltrados.filter(item => item.ultimaContagem === data);
+            }
+
+            if (pesquisa) {
+                dadosFiltrados = dadosFiltrados.filter(item => 
+                    item.medicamento.toLowerCase().includes(pesquisa) ||
+                    item.codigo.toLowerCase().includes(pesquisa) ||
+                    item.categoria.toLowerCase().includes(pesquisa)
+                );
+            }
+
+            renderizarTabela(dadosFiltrados);
+        }
+
+        // Event Listeners
+        document.getElementById('filterStatus').addEventListener('change', aplicarFiltros);
+        document.getElementById('filterCategory').addEventListener('change', aplicarFiltros);
+        document.getElementById('filterDate').addEventListener('change', aplicarFiltros);
+        document.getElementById('searchInput').addEventListener('input', aplicarFiltros);
+
+        document.getElementById('formContagem').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Aqui você implementaria a lógica para salvar a contagem
+            fecharModalContagem();
+        });
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            renderizarTabela(inventarioData);
+        });
+    </script>
+</body>
+</html>

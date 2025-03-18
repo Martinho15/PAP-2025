@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão de Armazéns de Medicamentos Angola</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="css/estilo.css">
+    <style>
+        /* Estilo do dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0.5rem 0;
+        }
+
+        .card-trend {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .trend-up { color: #28a745; }
+        .trend-down { color: #dc3545; }
+
+        .bg-blue { background-color: #0077b6; }
+        .bg-green { background-color: #28a745; }
+        .bg-orange { background-color: #fd7e14; }
+        .bg-red { background-color: #dc3545; }
+
+        .chart-container {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-filter {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-filter:hover {
+            background-color: #f8f9fa;
+        }
+
+        .chart-filter.active {
+            background-color: #0077b6;
+            color: #fff;
+            border-color: #0077b6;
+        }
+
+        #chart {
+            width: 100%;
+            min-height: 350px;
+            margin-top: 20px;
+        }
+
+        .recent-activities {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+
+        .activity-time {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .welcome-message {
+            margin-bottom: 2rem;
+        }
+
+        .welcome-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .welcome-subtitle {
+            color: #666;
+            margin: 0;
+        }
+
+        .header-actions {
+            position: relative;
+        }
+
+        /* 
+         * SISTEMA DE NOTIFICAÇÕES
+         * ----------------------
+         * Implementa o dropdown de notificações com:
+         * - Lista de notificações
+         * - Indicador de não lidas
+         * - Ações de marcar como lido
+         */
+         .notifications-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 320px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .notifications-dropdown.show {
+            display: block;
+        }
+
+        .notifications-header {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notifications-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+
+        .mark-all-read {
+            color: #0077b6;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .notifications-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #f0f7ff;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .notification-time {
+            color: #999;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            background: #0077b6;
+            border-radius: 50%;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .notifications-footer {
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+
+        .view-all {
+            color: #0077b6;
+            text-decoration: none;
+        }
+
+        .view-all:hover {
+            text-decoration: underline;
+        }
+
+        .bg-red { background-color: #dc3545; }
+        .bg-orange { background-color: #fd7e14; }
+        .bg-green { background-color: #28a745; }
+        .bg-blue { background-color: #0077b6; }
+
+        /* Estilos do botão do menu */
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--primary-color);
+            padding: 8px 12px;
+            margin-right: 10px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background-color: rgba(0, 119, 182, 0.1);
+        }
+
+        .close-sidebar {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Menu Lateral */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            top: 0;
+            width: 250px;
+            height: 100%;
+            background-color: #2c3e50;
+            color: white;
+            transition: transform 0.3s ease;
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .sidebar.show {
+            transform: translateX(250px);
+        }
+
+        /* Cabeçalho do Menu */
+        .sidebar-header {
+            height: 50px;
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #243442;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-info i {
+            font-size: 20px;
+            color: #ecf0f1;
+        }
+
+        .profile-info span {
+            font-size: 14px;
+            color: #ecf0f1;
+        }
+
+        .close-sidebar {
+            background: none;
+            border: none;
+            color: #ecf0f1;
+            cursor: pointer;
+            padding: 6px;
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .close-sidebar:hover {
+            transform: scale(1.1);
+        }
+
+        /* Seções do Menu */
+        .menu-section {
+            padding: 15px 0;
+        }
+
+        .menu-section h3 {
+            color: #7f8c8d;
+            font-size: 12px;
+            padding: 0 20px;
+            margin-bottom: 10px;
+        }
+
+        .menu-section a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .menu-section a i {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+            color: #3498db;
+        }
+
+        .menu-section a:hover,
+        .menu-section a.active {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .menu-section a:hover span,
+        .menu-section a.active span {
+            color: #3498db;
+        }
+
+        /* Botão de Menu/Perfil */
+        .profile-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .profile-toggle i {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+
+        .profile-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .profile-toggle:hover i {
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Lateral -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="profile-info">
+                <i class="fas fa-user-circle"></i>
+                <span>Usuário</span>
+            </div>
+            <button class="close-sidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="menu-section">
+            <h3>GESTÃO DE FARMÁCIA</h3>
+            <a href="medicamentos.html" class="active">
+                <i class="fas fa-pills"></i>
+                <span>Medicamentos</span>
+            </a>
+            <a href="armazem.html">
+                <i class="fas fa-warehouse"></i>
+                <span>Armazém de medicamentos</span>
+            </a>
+            <a href="laboratorios.html">
+                <i class="fas fa-industry"></i>
+                <span>Laboratórios</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>CONTROLE</h3>
+            <a href="movimentacoes.html">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Movimentações</span>
+            </a>
+            <a href="inventario.html">
+                <i class="fas fa-boxes"></i>
+                <span>Inventário</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>RELATÓRIOS</h3>
+            <a href="relatorios.html">
+                <i class="fas fa-chart-bar"></i>
+                <span>Relatórios</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>SISTEMA</h3>
+            <a href="usuarios.html">
+                <i class="fas fa-users"></i>
+                <span>Usuários</span>
+            </a>
+            <a href="configuracoes.html">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+            <a href="loginn.html">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </aside>
+    
+    <!-- Conteúdo principal -->
+    <div class="content">
+        <header>
+            <div class="header-left">
+                <button class="profile-toggle" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="Pesquisar medicamentos...">
+                    <button class="search-button"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="notifications">
+                    <button id="notificationsBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">0</span>
+                    </button>
+                    <div class="notifications-dropdown">
+                        <div class="notifications-header">
+                            <h3>Notificações</h3>
+                            <button class="mark-all-read">Marcar todas como lidas</button>
+                        </div>
+                        <div class="notifications-content">
+                            <!-- As notificações serão carregadas via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                <div class="user-profile">
+                    <button class="profile-button">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="dashboard">
+            <div class="dashboard-cards">
+                <div class="card">
+                    <div class="card-icon">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-title">Total de Medicamentos</h3>
+                        <p id="total-medicamentos" class="card-value">0 Un</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-title">Em Estoque</h3>
+                        <p id="em-estoque" class="card-value">0 CX</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-title">Estoque Baixo</h3>
+                        <p id="estoque-baixo" class="card-value">0 CX</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon danger">
+                        <i class="fas fa-calendar-times"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-title">Próximos ao Vencimento</h3>
+                        <p id="proximos-vencimento" class="card-value">0 CX</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-charts">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Movimentações Recentes</h3>
+                        <div class="chart-filters">
+                            <button id="btn7dias" class="chart-filter active" data-period="7d">7 dias</button>
+                            <button id="btn30dias" class="chart-filter" data-period="30d">30 dias</button>
+                            <button id="btn90dias" class="chart-filter" data-period="3m">3 meses</button>
+                        </div>
+                    </div>
+                    <div id="chart" style="min-height: 350px;"></div>
+                </div>
+            </div>
+            
+            <div class="dashboard-activities">
+                <div class="activities-header">
+                    <h3>Atividades Recentes</h3>
+                    <a href="movimentacoes.php" class="view-all">Ver todas</a>
+                </div>
+                <div class="activity-list">
+                    <!-- As atividades serão carregadas via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.41.0/dist/apexcharts.min.js"></script>
+    <script>
+        // Variável global para o gráfico
+        let chart;
+
+        // Inicializar o gráfico
+        function inicializarGrafico() {
+            console.log('Inicializando gráfico...');
+            const options = {
+                series: [{
+                    name: 'Entradas',
+                    data: [0]
+                }, {
+                    name: 'Saídas',
+                    data: [0]
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 350,
+                    stacked: true
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '55%',
+                        endingShape: 'rounded'
+                    },
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                },
+                xaxis: {
+                    categories: [''],
+                },
+                yaxis: {
+                    title: {
+                        text: 'Quantidade (CX)'
+                    }
+                },
+                fill: {
+                    opacity: 1
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return val + " CX"
+                        }
+                    }
+                },
+                colors: ['#00E396', '#FF4560']
+            };
+
+            console.log('Opções do gráfico:', options);
+            const chartElement = document.querySelector("#chart");
+            if (chartElement) {
+                console.log('Elemento do gráfico encontrado');
+                chart = new ApexCharts(chartElement, options);
+                chart.render();
+                console.log('Gráfico renderizado');
+                // Carregar dados iniciais para 7 dias
+                atualizarGrafico(7);
+            } else {
+                console.error('Elemento do gráfico não encontrado!');
+            }
+        }
+
+        // Função para atualizar o gráfico
+        async function atualizarGrafico(periodo) {
+            console.log('Atualizando gráfico para período:', periodo);
+            try {
+                const response = await fetch(`api_dashboard.php?acao=grafico&periodo=${periodo}`);
+                const data = await response.json();
+                console.log('Dados recebidos:', data);
+                
+                if (data && chart) {
+                    console.log('Atualizando dados do gráfico...');
+                    chart.updateSeries([
+                        {
+                            name: 'Entradas',
+                            data: data.entradas || []
+                        },
+                        {
+                            name: 'Saídas',
+                            data: data.saidas || []
+                        }
+                    ]);
+                    
+                    chart.updateOptions({
+                        xaxis: {
+                            categories: data.datas || []
+                        }
+                    });
+                    console.log('Gráfico atualizado com sucesso');
+                } else {
+                    console.error('Dados inválidos ou gráfico não inicializado');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar gráfico:', error);
+            }
+        }
+
+        // Event listeners para os botões de período
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM carregado, inicializando componentes...');
+            
+            document.getElementById('btn7dias').addEventListener('click', () => {
+                console.log('Clique em 7 dias');
+                atualizarGrafico(7);
+            });
+            
+            document.getElementById('btn30dias').addEventListener('click', () => {
+                console.log('Clique em 30 dias');
+                atualizarGrafico(30);
+            });
+            
+            document.getElementById('btn90dias').addEventListener('click', () => {
+                console.log('Clique em 90 dias');
+                atualizarGrafico(90);
+            });
+
+            // Inicializar gráfico e carregar dados
+            inicializarGrafico();
+            carregarDadosDashboard();
+        });
+
+        // Função para carregar dados do dashboard
+        async function carregarDadosDashboard() {
+            try {
+                const response = await fetch('api_dashboard.php?acao=estatisticas');
+                const data = await response.json();
+                if (data) {
+                    atualizarEstatisticas(data);
+                    await atualizarGrafico(7);
+                    atualizarAtividadesRecentes();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+
+        // Função para atualizar estatísticas
+        function atualizarEstatisticas(estatisticas) {
+            if (estatisticas) {
+                document.getElementById('total-medicamentos').textContent = formatarNumero(estatisticas.total_medicamentos || 0) + ' Un';
+                document.getElementById('em-estoque').textContent = formatarNumero(estatisticas.em_estoque || 0) + ' CX';
+                document.getElementById('estoque-baixo').textContent = formatarNumero(estatisticas.estoque_baixo || 0) + ' CX';
+                document.getElementById('proximos-vencimento').textContent = formatarNumero(estatisticas.proximos_vencimento || 0) + ' CX';
+            }
+        }
+
+        // Função para formatar números
+        function formatarNumero(valor) {
+            return new Intl.NumberFormat('pt-PT').format(valor);
+        }
+        
+        // Função para formatar valores em Kwanza
+        function formatarKwanza(value) {
+            return new Intl.NumberFormat('pt-AO', {
+                style: 'currency',
+                currency: 'AOA',
+                minimumFractionDigits: 2
+            }).format(value);
+        }
+
+        // Função para atualizar atividades recentes
+        async function atualizarAtividadesRecentes() {
+            try {
+                const response = await fetch('api_dashboard.php?acao=atividades');
+                const data = await response.json();
+                
+                if (data) {
+                    const lista = document.querySelector('.activity-list');
+                    lista.innerHTML = '';
+                    
+                    if (data.length > 0) {
+                        data.forEach(atividade => {
+                            lista.innerHTML += `
+                                <li class="activity-item">
+                                    <div class="activity-icon bg-${atividade.tipo === 'Entrada' ? 'green' : (atividade.tipo === 'Saída' ? 'red' : 'orange')}">
+                                        <i class="fas fa-${atividade.tipo === 'Entrada' ? 'arrow-up' : (atividade.tipo === 'Saída' ? 'arrow-down' : 'exchange-alt')}"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p class="activity-title">${atividade.descricao}</p>
+                                        <p class="activity-time">${atividade.data_formatada}</p>
+                                    </div>
+                                </li>
+                            `;
+                        });
+                    } else {
+                        lista.innerHTML = '<li class="activity-item"><div class="activity-content"><p>Nenhuma atividade recente.</p></div></li>';
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar atividades:', error);
+            }
+        }
+
+        // Função para controlar o menu lateral
+        function toggleMenu() {
+            console.log('Função toggleMenu chamada');
+            const sidebar = document.querySelector('.sidebar');
+            const main = document.querySelector('.content');
+            
+            if (sidebar && main) {
+                sidebar.classList.toggle('show');
+                main.classList.toggle('shifted');
+                console.log('Menu visível:', sidebar.classList.contains('show'));
+            } else {
+                console.error('Elementos não encontrados:', {
+                    sidebar: !!sidebar,
+                    main: !!main
+                });
+            }
+        }
+
+        // Inicializar componentes quando o documento estiver pronto
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM carregado, inicializando componentes...');
+            inicializarGrafico();
+            carregarDadosDashboard();
+            
+            // Atualizar dados a cada 1 minuto
+            setInterval(carregarDadosDashboard, 60000);
+        });
+    </script>
+    
+    <!-- Carregar o script de notificações -->
+    <script src="js/notificacoes.js"></script>
+</body>
+</html>

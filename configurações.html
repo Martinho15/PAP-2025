@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Sistema de Gestão de Farmácia</title>
+    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Estilos específicos para configurações */
+        .settings-container {
+            padding: 2rem;
+        }
+
+        .settings-header {
+            margin-bottom: 2rem;
+        }
+
+        .settings-header h1 {
+            font-size: 1.8rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .settings-header p {
+            color: #666;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .settings-section {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-section h2 {
+            font-size: 1.2rem;
+            color: #333;
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .settings-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .setting-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .setting-control {
+            margin-left: 1rem;
+        }
+
+        /* Controles específicos */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #3498db;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .select-control {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-width: 150px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .save-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .save-button:hover {
+            background: #2980b9;
+        }
+
+        .cancel-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .cancel-button:hover {
+            background: #c0392b;
+        }
+
+        /* Estilo para logs */
+        .log-container {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 3px;
+        }
+
+        .log-info { background: #e3f2fd; }
+        .log-warning { background: #fff3e0; }
+        .log-error { background: #ffebee; }
+
+        /* Ajuste do header */
+        header {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: #333;
+            margin: 0;
+        }
+
+        /* Tema escuro */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --border-color: #eeeeee;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --card-bg: #2d2d2d;
+            --border-color: #404040;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .settings-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .setting-title {
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="profile-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h1>Configurações</h1>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="profile-info">
+                <i class="fas fa-user-circle"></i>
+                <span>Usuário</span>
+            </div>
+            <button class="close-sidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="menu-section">
+            <a href="home.html">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <h3>GESTÃO DE FARMÁCIA</h3>
+            <a href="medicamentos.html">
+                <i class="fas fa-pills"></i>
+                <span>Medicamentos</span>
+            </a>
+            <a href="armazem.html">
+                <i class="fas fa-warehouse"></i>
+                <span>Armazém de medicamentos</span>
+            </a>
+            <a href="laboratorios.html">
+                <i class="fas fa-industry"></i>
+                <span>Laboratórios</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>CONTROLE</h3>
+            <a href="movimentacoes.html">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Movimentações</span>
+            </a>
+            <a href="inventario.html">
+                <i class="fas fa-boxes"></i>
+                <span>Inventário</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>RELATÓRIOS</h3>
+            <a href="relatorios.html">
+                <i class="fas fa-chart-bar"></i>
+                <span>Relatórios</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <h3>SISTEMA</h3>
+            <a href="usuarios.html">
+                <i class="fas fa-users"></i>
+                <span>Usuários</span>
+            </a>
+            <a href="configuracoes.html" class="active">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+            <a href="login.html">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </aside>
+
+    <main>
+        <div class="settings-container">
+            <div class="settings-header">
+                <h1>Configurações do Sistema</h1>
+                <p>Gerencie as configurações gerais do sistema</p>
+            </div>
+
+            <!-- Configurações Gerais -->
+            <div class="settings-section">
+                <h2>Configurações Gerais</h2>
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3 class="setting-title">Idioma do Sistema</h3>
+                            <p class="setting-description">Selecione o idioma principal do sistema</p>
+                        </div>
+                        <div class="setting-control">
+                            <select class="select-control">
+                                <option value="pt-BR">Português (Brasil)</option>
+                                <option value="en">English</option>
+                                <option value="es">Español</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3 class="setting-title">Fuso Horário</h3>
+                            <p class="setting-description">Defina o fuso horário para exibição de datas e horários</p>
+                        </div>
+                        <div class="setting-control">
+                            <select class="select-control">
+                                <option value="UTC-3">Brasília (UTC-3)</option>
+                                <option value="UTC-4">Manaus (UTC-4)</option>
+                                <option value="UTC-5">Acre (UTC-5)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personalização -->
+            <div class="settings-section">
+                <h2>Personalização</h2>
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3 class="setting-title">Tema Escuro</h3>
+                            <p class="setting-description">Ativar modo escuro para melhor visualização noturna</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3 class="setting-title">Tamanho da Fonte</h3>
+                            <p class="setting-description">Ajuste o tamanho do texto em todo o sistema</p>
+                        </div>
+                        <div class="setting-control">
+                            <select class="select-control">
+                                <option value="small">Pequeno</option>
+                                <option value="medium" selected>Médio</option>
+                                <option value="large">Grande</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notificações -->
+            <div class="settings-section">
+                <h2>Notificações</h2>
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3 class="setting-title">Notificações do Sistema</h3>
+                            <p class="setting-description">Receber alertas sobre atualizações e eventos do sistema</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3 class="setting-title">Alertas de Estoque</h3>
+                            <p class="setting-description">Notificações quando produtos atingirem estoque mínimo</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3 class="setting-title">Alertas de Vencimento</h3>
+                            <p class="setting-description">Notificações sobre produtos próximos ao vencimento</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup e Restauração -->
+            <div class="settings-section">
+                <h2>Backup e Restauração</h2>
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3 class="setting-title">Backup Automático</h3>
+                            <p class="setting-description">Realizar backup automático dos dados diariamente</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3 class="setting-title">Último Backup</h3>
+                            <p class="setting-description">07/03/2025 10:30</p>
+                        </div>
+                        <div class="setting-control">
+                            <button class="save-button">Fazer Backup</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs do Sistema -->
+            <div class="settings-section">
+                <h2>Logs do Sistema</h2>
+                <div class="log-container">
+                    <div class="log-entry log-info">
+                        [07/03/2025 11:45] Sistema iniciado com sucesso
+                    </div>
+                    <div class="log-entry log-warning">
+                        [07/03/2025 11:30] Backup automático atrasado
+                    </div>
+                    <div class="log-entry log-error">
+                        [07/03/2025 11:15] Erro ao sincronizar dados
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="save-button">Salvar Alterações</button>
+                <button class="cancel-button">Cancelar</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Controle do menu lateral
+        document.querySelector('.profile-toggle').addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('show');
+            document.querySelector('main').classList.toggle('sidebar-open');
+        });
+
+        document.querySelector('.close-sidebar').addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('show');
+            document.querySelector('main').classList.remove('sidebar-open');
+        });
+
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', (e) => {
+            const sidebar = document.querySelector('.sidebar');
+            const toggleButton = document.querySelector('.profile-toggle');
+            
+            if (!sidebar.contains(e.target) && !toggleButton.contains(e.target)) {
+                sidebar.classList.remove('show');
+                document.querySelector('main').classList.remove('sidebar-open');
+            }
+        });
+
+        // Tema escuro
+        const darkThemeToggle = document.querySelector('input[type="checkbox"]');
+        darkThemeToggle.addEventListener('change', () => {
+            document.documentElement.setAttribute('data-theme', darkThemeToggle.checked ? 'dark' : 'light');
+        });
+
+        // Salvar configurações
+        document.querySelector('.save-button').addEventListener('click', () => {
+            // Aqui você implementaria a lógica para salvar as configurações
+            alert('Configurações salvas com sucesso!');
+        });
+
+        // Cancelar alterações
+        document.querySelector('.cancel-button').addEventListener('click', () => {
+            if (confirm('Deseja descartar as alterações?')) {
+                window.location.reload();
+            }
+        });
+    </script>
+</body>
+</html>
