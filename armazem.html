@@ -1,3 +1,36 @@
+<!--
+    ESTRUTURA DO ARQUIVO:
+    1. HEADER
+        - Botão do menu lateral (profile-toggle)
+        - Campo de pesquisa (search-container)
+        - Notificações (header-actions)
+            - Botão de notificações (btn-icon)
+            - Dropdown de notificações (notifications-dropdown)
+    
+    2. MENU LATERAL (sidebar)
+        - Header do menu (sidebar-header)
+        - Links de navegação (menu-section)
+    
+    3. CONTEÚDO PRINCIPAL (main-content)
+        - Header da página (content-header)
+            - Título
+            - Botões de ação (action-buttons)
+        - Resumo do estoque (stock-summary)
+            - Cards com informações
+        - Tabela de medicamentos (data-table)
+    
+    4. MODAIS
+        - Modal de nova entrada (newItemModal)
+        - Modal de movimentação (movimentacaoModal)
+    
+    5. JAVASCRIPT
+        - Funções de manipulação da tabela
+        - Funções dos modais
+        - Funções de notificação
+        - Event listeners
+        - Gerenciamento de estoque
+-->
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -122,6 +155,7 @@
         .card-icon.blue { background: #3498db; }
         .card-icon.red { background: #e74c3c; }
         .card-icon.orange { background: #f39c12; }
+        .card-icon.green { background: #27ae60; }
 
         .card-content {
             flex: 1;
@@ -145,6 +179,7 @@
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             overflow: hidden;
+            overflow-x: auto;
         }
 
         .stock-table table {
@@ -229,63 +264,36 @@
             background: #3498db;
             color: white;
             border: none;
-            padding: 1rem 2rem;
-            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            font-size: 1.1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            gap: 0.5rem;
+            font-size: 1rem;
+            transition: background 0.3s ease;
         }
 
         .btn-add:hover {
             background: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        .btn-add i {
-            font-size: 1.2rem;
-        }
-
-        /* Estilo do ícone de notificações */
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            position: relative;
-        }
-
-        .btn-icon {
-            position: relative;
-            background: transparent;
-            border: none;
-            color: #2c3e50;
-            cursor: pointer;
-            padding: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-icon i {
-            font-size: 1.25rem;
-        }
-
-        .badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
+        .btn-remove {
             background: #e74c3c;
             color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 0.75rem;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+
+        .btn-remove:hover {
+            background: #c0392b;
         }
 
         /* Estilos das notificações */
@@ -296,7 +304,7 @@
             width: 320px;
             background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             margin-top: 10px;
             display: none;
             z-index: 1000;
@@ -351,6 +359,10 @@
             background: #f0f7ff;
         }
 
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
         .notification-icon {
             width: 36px;
             height: 36px;
@@ -392,6 +404,43 @@
             border-radius: 50%;
             margin-left: auto;
             flex-shrink: 0;
+        }
+
+        .notifications-footer {
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+
+        .view-all {
+            color: #0077b6;
+            text-decoration: none;
+        }
+
+        .view-all:hover {
+            text-decoration: underline;
+        }
+
+        .bg-red { background-color: #dc3545; }
+        .bg-orange { background-color: #fd7e14; }
+        .bg-green { background-color: #28a745; }
+        .bg-blue { background-color: #0077b6; }
+
+        /* Estilo do ícone de notificações */
+        .btn-icon {
+            padding: 0.75rem;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            background: white;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-icon:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            background: #f8f9fa;
         }
 
         /* Modal de Novo Item */
@@ -441,23 +490,36 @@
             color: #666;
         }
 
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
         .form-group {
+            flex: 1;
             margin-bottom: 1rem;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            color: #2c3e50;
+            font-weight: 500;
+            color: #333;
         }
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
-            padding: 0.5rem;
+            padding: 0.75rem;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 5px;
             font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
         }
 
         .modal-footer {
@@ -484,6 +546,105 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
+        /* Estilos para botões de ação */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-report, .btn-export {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #ddd;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-report:hover, .btn-export:hover {
+            background: #e9ecef;
+            border-color: #ced4da;
+        }
+
+        /* Estilos para o botão de rastreamento de lote */
+        .btn-filter {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #ddd;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-filter:hover {
+            background: #e9ecef;
+            border-color: #ced4da;
+        }
+
+        /* Estilos para alertas de validade */
+        .text-danger {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .text-warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        /* Estilos para o modal de rastreamento de lote */
+        .batch-info {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .batch-info h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .batch-info p {
+            margin: 0.5rem 0;
+            color: #666;
+        }
+
+        .batch-info .batch-status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .batch-status.valid {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .batch-status.expiring-soon {
+            background: #fff3cd;
+            color: #664d03;
+        }
+
+        .batch-status.expired {
+            background: #f8d7da;
+            color: #842029;
+        }
     </style>
 </head>
 <body>
@@ -492,6 +653,10 @@
         <button class="profile-toggle">
             <i class="fas fa-user-circle"></i>
         </button>
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Pesquisar medicamentos...">
+            <i class="fas fa-search search-icon"></i>
+        </div>
         <div class="header-actions">
             <button class="btn-icon" title="Notificações" id="notificationsBtn">
                 <i class="fas fa-bell"></i>
@@ -503,7 +668,42 @@
                     <button class="mark-all-read">Marcar todas como lidas</button>
                 </div>
                 <div class="notifications-list">
-                    <!-- Preenchido via JavaScript -->
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-red">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Estoque Crítico</h4>
+                            <p class="notification-message">Dipirona 500mg está com estoque abaixo do mínimo</p>
+                            <p class="notification-time">Há 5 minutos</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-orange">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Vencimento Próximo</h4>
+                            <p class="notification-message">5 medicamentos vencem em 30 dias</p>
+                            <p class="notification-time">Há 2 horas</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon bg-green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">Pedido Recebido</h4>
+                            <p class="notification-message">Novo pedido de compra aprovado</p>
+                            <p class="notification-time">Há 3 horas</p>
+                        </div>
+                        <div class="notification-dot"></div>
+                    </div>
+                </div>
+                <div class="notifications-footer">
+                    <a href="notificacoes.html" class="view-all">Ver todas as notificações</a>
                 </div>
             </div>
         </div>
@@ -581,10 +781,24 @@
     <div class="main-content">
         <div class="content-header">
             <h1>Armazém de Medicamentos</h1>
-            <button class="btn-add" onclick="abrirModalNovo()">
-                <i class="fas fa-plus"></i>
-                Novo Item
-            </button>
+            <div class="action-buttons">
+                <button class="btn-report" onclick="gerarRelatorio()">
+                    <i class="fas fa-file-alt"></i>
+                    Relatório
+                </button>
+                <button class="btn-export" onclick="exportarDados()">
+                    <i class="fas fa-file-export"></i>
+                    Exportar
+                </button>
+                <button class="btn-add" onclick="abrirModalNovo()">
+                    <i class="fas fa-plus"></i>
+                   Registrar Entrada
+                </button>
+                <button class="btn-remove" onclick="registrarSaida()">
+                    <i class="fas fa-minus"></i>
+                   Registrar Saída
+                </button>
+            </div>
         </div>
 
         <div class="stock-summary">
@@ -615,6 +829,15 @@
                     <div class="value" id="nearExpiry">0</div>
                 </div>
             </div>
+            <div class="summary-card">
+                <div class="card-icon green">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Valor Estimado</h3>
+                    <div class="value" id="totalValue">0 Kz</div>
+                </div>
+            </div>
         </div>
 
         <div class="filters">
@@ -625,6 +848,16 @@
                 <option value="low">Estoque Baixo</option>
                 <option value="critical">Estoque Crítico</option>
             </select>
+            <select class="filter-input" id="expiryFilter">
+                <option value="">Todas as Validades</option>
+                <option value="expired">Vencidos</option>
+                <option value="expiring-soon">Vencimento em 30 dias</option>
+                <option value="expiring-medium">Vencimento em 90 dias</option>
+                <option value="valid">Válidos</option>
+            </select>
+            <button class="btn-filter" id="btnRastrearLote">
+                <i class="fas fa-search"></i> Rastrear Lote
+            </button>
         </div>
 
         <div class="stock-table">
@@ -633,9 +866,12 @@
                     <tr>
                         <th>Código</th>
                         <th>Nome</th>
+                        <th>Categoria</th>
                         <th>Quantidade</th>
+                        <th>Unidade</th>
                         <th>Status</th>
                         <th>Validade</th>
+                        <th>Fornecedor</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -650,33 +886,152 @@
     <div class="modal" id="newItemModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Novo Item</h2>
+                <h2>Registrar Entrada de Medicamento</h2>
                 <button class="close-modal" id="closeModal">&times;</button>
             </div>
             <form id="newItemForm">
-                <div class="form-group">
-                    <label for="itemName">Nome do Medicamento</label>
-                    <input type="text" id="itemName" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemCode">Código</label>
+                        <input type="text" id="itemCode" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemName">Nome do Medicamento</label>
+                        <input type="text" id="itemName" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemCategory">Categoria</label>
+                        <select id="itemCategory" required>
+                            <option value="">Selecione</option>
+                            <option value="analgesico">Analgésico</option>
+                            <option value="antibiotico">Antibiótico</option>
+                            <option value="antiviral">Antiviral</option>
+                            <option value="antiinflamatorio">Anti-inflamatório</option>
+                            <option value="antihipertensivo">Anti-hipertensivo</option>
+                            <option value="antidiabetico">Antidiabético</option>
+                            <option value="vacina">Vacina</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemSupplier">Fornecedor</label>
+                        <select id="itemSupplier" required>
+                            <option value="">Selecione</option>
+                            <option value="ministerio">Ministério da Saúde</option>
+                            <option value="oms">OMS</option>
+                            <option value="unicef">UNICEF</option>
+                            <option value="importado">Importado</option>
+                            <option value="local">Fabricante Local</option>
+                            <option value="doacao">Doação</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemQuantity">Quantidade</label>
+                        <input type="number" id="itemQuantity" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="itemUnit">Unidade</label>
+                        <select id="itemUnit" required>
+                            <option value="comprimido">Comprimido</option>
+                            <option value="ampola">Ampola</option>
+                            <option value="frasco">Frasco</option>
+                            <option value="caixa">Caixa</option>
+                            <option value="dose">Dose</option>
+                            <option value="kit">Kit</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemMinQuantity">Quantidade Mínima</label>
+                        <input type="number" id="itemMinQuantity" required min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemExpiry">Data de Validade</label>
+                        <input type="date" id="itemExpiry" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemBatch">Lote</label>
+                        <input type="text" id="itemBatch" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemLocation">Localização no Armazém</label>
+                        <input type="text" id="itemLocation" placeholder="Ex: Prateleira A3">
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="itemCode">Código</label>
-                    <input type="text" id="itemCode" required>
-                </div>
-                <div class="form-group">
-                    <label for="itemQuantity">Quantidade</label>
-                    <input type="number" id="itemQuantity" required min="0">
-                </div>
-                <div class="form-group">
-                    <label for="itemMinQuantity">Quantidade Mínima</label>
-                    <input type="number" id="itemMinQuantity" required min="0">
-                </div>
-                <div class="form-group">
-                    <label for="itemExpiry">Data de Validade</label>
-                    <input type="date" id="itemExpiry" required>
+                    <label for="itemObservation">Observações</label>
+                    <textarea id="itemObservation" rows="2"></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel" id="cancelNewItem">Cancelar</button>
                     <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Movimentação -->
+    <div class="modal" id="movimentacaoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="movimentacaoTitulo">Registrar Movimentação</h2>
+                <button class="close-modal" id="closeMovimentacaoModal">&times;</button>
+            </div>
+            <form id="movimentacaoForm">
+                <input type="hidden" id="movimentacaoTipo" value="entrada">
+                <input type="hidden" id="movimentacaoCodigo" value="">
+                
+                <div class="form-group">
+                    <label for="movimentacaoMedicamento">Medicamento</label>
+                    <select id="movimentacaoMedicamento" required>
+                        <option value="">Selecione o medicamento</option>
+                        <!-- Preenchido via JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="movimentacaoQuantidade">Quantidade</label>
+                        <input type="number" id="movimentacaoQuantidade" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="movimentacaoData">Data</label>
+                        <input type="date" id="movimentacaoData" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="movimentacaoDestino">Destino/Origem</label>
+                        <select id="movimentacaoDestino" required>
+                            <option value="">Selecione</option>
+                            <option value="hospital">Hospital Provincial</option>
+                            <option value="centro">Centro de Saúde</option>
+                            <option value="clinica">Clínica</option>
+                            <option value="farmacia">Farmácia</option>
+                            <option value="fornecedor">Fornecedor</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="movimentacaoResponsavel">Responsável</label>
+                        <input type="text" id="movimentacaoResponsavel" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="movimentacaoObservacao">Observações</label>
+                    <textarea id="movimentacaoObservacao" rows="2"></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" id="cancelarMovimentacao">Cancelar</button>
+                    <button type="submit" class="btn-save">Registrar</button>
                 </div>
             </form>
         </div>
@@ -756,10 +1111,10 @@
                 },
                 {
                     id: 'notif3',
-                    title: 'Entrada de Estoque',
-                    message: 'Nova entrada de Amoxicilina registrada',
+                    title: 'Pedido Recebido',
+                    message: 'Novo pedido de compra aprovado',
                     time: 'Há 3 horas',
-                    icon: 'box',
+                    icon: 'check-circle',
                     type: 'success'
                 }
             ];
@@ -841,20 +1196,59 @@
 
         function atualizarTabela() {
             const tbody = document.getElementById('stockTableBody');
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
             tbody.innerHTML = '';
 
             medicamentos.forEach(item => {
+                // Verificar status do estoque
+                let status = '';
+                let statusText = '';
+                
+                if (item.quantidade < item.minQuantidade * 0.5) {
+                    status = 'status-critical';
+                    statusText = 'Crítico';
+                } else if (item.quantidade < item.minQuantidade) {
+                    status = 'status-low';
+                    statusText = 'Baixo';
+                } else {
+                    status = 'status-ok';
+                    statusText = 'OK';
+                }
+                
+                // Aplicar filtros
+                if ((statusFilter && !status.includes(statusFilter)) || 
+                    (searchInput && !item.nome.toLowerCase().includes(searchInput) && !item.codigo.toLowerCase().includes(searchInput))) {
+                    return;
+                }
+                
+                // Verificar validade
+                const hoje = new Date();
+                const validade = new Date(item.validade);
+                const diasAteVencimento = Math.floor((validade - hoje) / (1000 * 60 * 60 * 24));
+                let validadeClass = '';
+                
+                if (diasAteVencimento <= 0) {
+                    validadeClass = 'text-danger';
+                } else if (diasAteVencimento <= 30) {
+                    validadeClass = 'text-warning';
+                }
+
                 const row = `
                     <tr>
                         <td>${item.codigo}</td>
                         <td>${item.nome}</td>
+                        <td>${item.categoria || '-'}</td>
                         <td>${item.quantidade}</td>
+                        <td>${item.unidade || '-'}</td>
                         <td>
-                            <span class="stock-status ${item.quantidade < 50 ? 'status-critical' : item.quantidade < 100 ? 'status-low' : 'status-ok'}">
-                                ${item.quantidade < 50 ? 'Crítico' : item.quantidade < 100 ? 'Baixo' : 'OK'}
+                            <span class="stock-status ${status}">
+                                ${statusText}
                             </span>
                         </td>
-                        <td>${new Date(item.validade).toLocaleDateString()}</td>
+                        <td class="${validadeClass}">${new Date(item.validade).toLocaleDateString()}</td>
+                        <td>${item.fornecedor || '-'}</td>
                         <td>
                             <button class="btn-action btn-edit" onclick="editarItem('${item.codigo}')">
                                 <i class="fas fa-edit"></i>
@@ -871,13 +1265,33 @@
 
         function atualizarContadores() {
             document.getElementById('totalItems').textContent = medicamentos.length;
-            document.getElementById('criticalStock').textContent = medicamentos.filter(m => m.quantidade < 50).length;
+            document.getElementById('criticalStock').textContent = medicamentos.filter(m => m.quantidade < m.minQuantidade * 0.5).length;
             document.getElementById('nearExpiry').textContent = medicamentos.filter(m => {
                 const validade = new Date(m.validade);
                 const hoje = new Date();
                 const diasAteVencimento = Math.floor((validade - hoje) / (1000 * 60 * 60 * 24));
                 return diasAteVencimento <= 30;
             }).length;
+            
+            // Calcular valor total estimado (usando valores fictícios para exemplo)
+            const valorTotal = medicamentos.reduce((total, med) => {
+                // Valores estimados por categoria em Kwanzas angolanos
+                const valoresPorCategoria = {
+                    'Analgésico': 500,
+                    'Antibiótico': 1200,
+                    'Antimalárico': 800,
+                    'Vacina': 2500,
+                    'Anti-inflamatório': 700,
+                    'Antihipertensivo': 1500,
+                    'Antidiabético': 1800
+                };
+                
+                const valorUnitario = valoresPorCategoria[med.categoria] || 1000; // Valor padrão se categoria não encontrada
+                return total + (valorUnitario * med.quantidade);
+            }, 0);
+            
+            // Formatar o valor em Kwanzas angolanos
+            document.getElementById('totalValue').textContent = valorTotal.toLocaleString('pt-AO') + ' Kz';
         }
 
         // Exemplo de dados
@@ -885,10 +1299,63 @@
             {
                 codigo: 'MED001',
                 nome: 'Paracetamol 500mg',
+                categoria: 'Analgésico',
                 quantidade: 1500,
+                unidade: 'Comprimido',
                 validade: '2024-12-31',
+                fornecedor: 'Ministério da Saúde',
+                minQuantidade: 200,
+                lote: 'LOT2023-A45',
+                localizacao: 'Prateleira A1'
             },
-            // Adicionar mais medicamentos conforme necessário
+            {
+                codigo: 'MED002',
+                nome: 'Coartem 20/120mg',
+                categoria: 'Antimalárico',
+                quantidade: 850,
+                unidade: 'Comprimido',
+                validade: '2024-08-15',
+                fornecedor: 'OMS',
+                minQuantidade: 300,
+                lote: 'LOT2023-B22',
+                localizacao: 'Prateleira B3'
+            },
+            {
+                codigo: 'MED003',
+                nome: 'Vacina Febre Amarela',
+                categoria: 'Vacina',
+                quantidade: 45,
+                unidade: 'Dose',
+                validade: '2024-05-10',
+                fornecedor: 'UNICEF',
+                minQuantidade: 50,
+                lote: 'VAC2023-F12',
+                localizacao: 'Refrigerador 2'
+            },
+            {
+                codigo: 'MED004',
+                nome: 'Amoxicilina 500mg',
+                categoria: 'Antibiótico',
+                quantidade: 1200,
+                unidade: 'Cápsula',
+                validade: '2025-02-28',
+                fornecedor: 'Ministério da Saúde',
+                minQuantidade: 200,
+                lote: 'LOT2023-C78',
+                localizacao: 'Prateleira C2'
+            },
+            {
+                codigo: 'MED005',
+                nome: 'Metronidazol 250mg',
+                categoria: 'Antibiótico',
+                quantidade: 750,
+                unidade: 'Comprimido',
+                validade: '2024-11-20',
+                fornecedor: 'Importado',
+                minQuantidade: 150,
+                lote: 'LOT2023-M33',
+                localizacao: 'Prateleira D1'
+            }
         ];
 
         // Inicialização
@@ -898,7 +1365,7 @@
             updateNotifications();
         });
 
-        // Funcionalidade do botão Novo Item
+        // Funções do modal
         const newItemBtn = document.querySelector('.btn-add');
         const modal = document.getElementById('newItemModal');
         const closeModal = document.getElementById('closeModal');
@@ -931,28 +1398,39 @@
             const newItem = {
                 nome: document.getElementById('itemName').value,
                 codigo: document.getElementById('itemCode').value,
+                categoria: document.getElementById('itemCategory').value,
                 quantidade: parseInt(document.getElementById('itemQuantity').value),
-                validade: document.getElementById('itemExpiry').value
+                unidade: document.getElementById('itemUnit').value,
+                validade: document.getElementById('itemExpiry').value,
+                fornecedor: document.getElementById('itemSupplier').value,
+                minQuantidade: parseInt(document.getElementById('itemMinQuantity').value),
+                lote: document.getElementById('itemBatch').value,
+                localizacao: document.getElementById('itemLocation').value
             };
 
             // Adicionar à tabela
             const table = document.querySelector('.stock-table tbody');
             const row = document.createElement('tr');
             
-            const status = newItem.quantidade <= 50 ? 'critical' : 
-                          newItem.quantidade <= 100 ? 'low' : 'ok';
+            const status = newItem.quantidade <= newItem.minQuantidade * 0.5 ? 'status-critical' : 
+                          newItem.quantidade <= newItem.minQuantidade ? 'status-low' : 'status-ok';
 
             row.innerHTML = `
                 <td>${newItem.codigo}</td>
                 <td>${newItem.nome}</td>
-                <td class="status-cell ${status}">
-                    <span class="status-indicator"></span>
-                    ${newItem.quantidade}
+                <td>${newItem.categoria || '-'}</td>
+                <td>${newItem.quantidade}</td>
+                <td>${newItem.unidade || '-'}</td>
+                <td>
+                    <span class="stock-status ${status}">
+                        ${status === 'status-critical' ? 'Crítico' : status === 'status-low' ? 'Baixo' : 'OK'}
+                    </span>
                 </td>
-                <td>${newItem.validade}</td>
-                <td class="actions">
-                    <button class="btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
-                    <button class="btn-delete" title="Excluir"><i class="fas fa-trash"></i></button>
+                <td>${new Date(newItem.validade).toLocaleDateString()}</td>
+                <td>${newItem.fornecedor || '-'}</td>
+                <td>
+                    <button class="btn-action btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="btn-action btn-delete" title="Excluir"><i class="fas fa-trash"></i></button>
                 </td>
             `;
 
@@ -965,7 +1443,7 @@
             closeModalHandler();
 
             // Adicionar notificação se estoque estiver crítico
-            if (status === 'critical') {
+            if (status === 'status-critical') {
                 addNotification(`Estoque crítico: ${newItem.nome}`);
             }
         });
@@ -982,9 +1460,9 @@
             rows.forEach(row => {
                 const code = row.cells[0].textContent.toLowerCase();
                 const name = row.cells[1].textContent.toLowerCase();
-                const statusCell = row.cells[2];
-                const status = statusCell.classList.contains('critical') ? 'critical' :
-                             statusCell.classList.contains('low') ? 'low' : 'ok';
+                const statusCell = row.cells[5];
+                const status = statusCell.classList.contains('status-critical') ? 'critical' :
+                             statusCell.classList.contains('status-low') ? 'low' : 'ok';
 
                 const matchesSearch = code.includes(searchTerm) || name.includes(searchTerm);
                 const matchesStatus = !statusFilter || status === statusFilter;
@@ -992,6 +1470,320 @@
                 row.style.display = matchesSearch && matchesStatus ? '' : 'none';
             });
         }
+
+        // Função para gerar relatório
+        function gerarRelatorio() {
+            const tiposRelatorio = ['Inventário Completo', 'Itens Críticos', 'Próximos ao Vencimento', 'Movimentações'];
+            
+            // Criar modal de relatório
+            const modalHTML = `
+                <div class="modal active" id="relatorioModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Gerar Relatório</h2>
+                            <button class="close-modal" id="closeRelatorioModal">&times;</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipoRelatorio">Tipo de Relatório</label>
+                            <select id="tipoRelatorio" class="form-control">
+                                ${tiposRelatorio.map(tipo => `<option value="${tipo}">${tipo}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="dataInicio">Data Início</label>
+                                <input type="date" id="dataInicio" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="dataFim">Data Fim</label>
+                                <input type="date" id="dataFim" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="formatoRelatorio">Formato</label>
+                            <select id="formatoRelatorio" class="form-control">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-cancel" id="cancelarRelatorio">Cancelar</button>
+                            <button type="button" class="btn-save" id="gerarRelatorioBtn">Gerar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Adicionar modal ao DOM
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Adicionar event listeners
+            document.getElementById('closeRelatorioModal').addEventListener('click', () => {
+                document.getElementById('relatorioModal').remove();
+            });
+            
+            document.getElementById('cancelarRelatorio').addEventListener('click', () => {
+                document.getElementById('relatorioModal').remove();
+            });
+            
+            document.getElementById('gerarRelatorioBtn').addEventListener('click', () => {
+                const tipo = document.getElementById('tipoRelatorio').value;
+                const formato = document.getElementById('formatoRelatorio').value;
+                
+                alert(`Relatório de ${tipo} será gerado em formato ${formato}. Esta funcionalidade será implementada em breve.`);
+                document.getElementById('relatorioModal').remove();
+            });
+        }
+        
+        // Função para exportar dados
+        function exportarDados() {
+            alert('Exportação de dados será implementada em breve. Os dados serão exportados em formato CSV.');
+        }
+
+        // Função para rastrear lote
+        function rastrearLote() {
+            // Criar modal de rastreamento de lote
+            const modalHTML = `
+                <div class="modal active" id="rastrearLoteModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Rastrear Lote</h2>
+                            <button class="close-modal" id="closeRastrearModal">&times;</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="numeroLote">Número do Lote</label>
+                            <input type="text" id="numeroLote" placeholder="Digite o número do lote">
+                        </div>
+                        <div id="resultadoLote"></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-cancel" id="cancelarRastreamento">Cancelar</button>
+                            <button type="button" class="btn-save" id="buscarLoteBtn">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Adicionar modal ao DOM
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Adicionar event listeners
+            document.getElementById('closeRastrearModal').addEventListener('click', () => {
+                document.getElementById('rastrearLoteModal').remove();
+            });
+            
+            document.getElementById('cancelarRastreamento').addEventListener('click', () => {
+                document.getElementById('rastrearLoteModal').remove();
+            });
+            
+            document.getElementById('buscarLoteBtn').addEventListener('click', () => {
+                const lote = document.getElementById('numeroLote').value.trim();
+                const resultadoDiv = document.getElementById('resultadoLote');
+                
+                if (!lote) {
+                    resultadoDiv.innerHTML = '<p class="text-danger">Por favor, digite um número de lote.</p>';
+                    return;
+                }
+                
+                // Procurar medicamentos com o lote informado
+                const medicamentosLote = medicamentos.filter(m => m.lote && m.lote.toLowerCase() === lote.toLowerCase());
+                
+                if (medicamentosLote.length === 0) {
+                    resultadoDiv.innerHTML = '<p class="text-danger">Nenhum medicamento encontrado com este número de lote.</p>';
+                    return;
+                }
+                
+                // Exibir informações do lote
+                let html = '';
+                medicamentosLote.forEach(med => {
+                    const validade = new Date(med.validade);
+                    const hoje = new Date();
+                    const diasAteVencimento = Math.floor((validade - hoje) / (1000 * 60 * 60 * 24));
+                    
+                    let statusClass = 'valid';
+                    let statusText = 'Válido';
+                    
+                    if (diasAteVencimento <= 0) {
+                        statusClass = 'expired';
+                        statusText = 'Vencido';
+                    } else if (diasAteVencimento <= 30) {
+                        statusClass = 'expiring-soon';
+                        statusText = 'Vencimento Próximo';
+                    }
+                    
+                    html += `
+                        <div class="batch-info">
+                            <h3>${med.nome}</h3>
+                            <p><strong>Código:</strong> ${med.codigo}</p>
+                            <p><strong>Lote:</strong> ${med.lote}</p>
+                            <p><strong>Quantidade:</strong> ${med.quantidade} ${med.unidade}</p>
+                            <p><strong>Validade:</strong> ${validade.toLocaleDateString()}</p>
+                            <p><strong>Fornecedor:</strong> ${med.fornecedor || '-'}</p>
+                            <p><strong>Localização:</strong> ${med.localizacao || '-'}</p>
+                            <p><strong>Status:</strong> <span class="batch-status ${statusClass}">${statusText}</span></p>
+                        </div>
+                    `;
+                });
+                
+                resultadoDiv.innerHTML = html;
+            });
+        }
+        
+        // Event listener para o botão de rastrear lote
+        document.getElementById('btnRastrearLote').addEventListener('click', rastrearLote);
+        
+        // Função para filtrar por validade
+        function filtrarPorValidade() {
+            const expiryFilter = document.getElementById('expiryFilter').value;
+            const rows = document.querySelectorAll('#stockTableBody tr');
+            
+            rows.forEach(row => {
+                if (row.style.display === 'none') return; // Já está filtrado por outro critério
+                
+                const validadeCell = row.cells[6]; // Célula com a data de validade
+                const validadeText = validadeCell.textContent;
+                const validade = new Date(validadeText.split('/').reverse().join('-'));
+                const hoje = new Date();
+                const diasAteVencimento = Math.floor((validade - hoje) / (1000 * 60 * 60 * 24));
+                
+                let mostrar = true;
+                
+                switch (expiryFilter) {
+                    case 'expired':
+                        mostrar = diasAteVencimento <= 0;
+                        break;
+                    case 'expiring-soon':
+                        mostrar = diasAteVencimento > 0 && diasAteVencimento <= 30;
+                        break;
+                    case 'expiring-medium':
+                        mostrar = diasAteVencimento > 30 && diasAteVencimento <= 90;
+                        break;
+                    case 'valid':
+                        mostrar = diasAteVencimento > 90;
+                        break;
+                }
+                
+                if (expiryFilter && !mostrar) {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Event listener para o filtro de validade
+        document.getElementById('expiryFilter').addEventListener('change', () => {
+            filterTable();
+            filtrarPorValidade();
+        });
+
+        // Histórico de movimentações
+        const movimentacoes = [];
+
+        // Função para registrar saída
+        function registrarSaida() {
+            abrirModalMovimentacao('saida');
+        }
+
+        // Função para abrir modal de movimentação
+        function abrirModalMovimentacao(tipo) {
+            // Limpar o formulário
+            document.getElementById('movimentacaoForm').reset();
+            
+            // Definir o tipo de movimentação
+            document.getElementById('movimentacaoTipo').value = tipo;
+            
+            // Atualizar o título do modal
+            document.getElementById('movimentacaoTitulo').textContent = tipo === 'entrada' ? 'Registrar Entrada' : 'Registrar Saída';
+            
+            // Preencher o select de medicamentos
+            const selectMedicamentos = document.getElementById('movimentacaoMedicamento');
+            selectMedicamentos.innerHTML = '<option value="">Selecione o medicamento</option>';
+            
+            medicamentos.forEach(med => {
+                selectMedicamentos.innerHTML += `<option value="${med.codigo}">${med.nome} (${med.codigo})</option>`;
+            });
+            
+            // Definir a data atual
+            const hoje = new Date();
+            const dataFormatada = hoje.toISOString().split('T')[0];
+            document.getElementById('movimentacaoData').value = dataFormatada;
+            
+            // Exibir o modal
+            document.getElementById('movimentacaoModal').classList.add('active');
+        }
+        
+        // Event listeners para o modal de movimentação
+        document.getElementById('closeMovimentacaoModal').addEventListener('click', () => {
+            document.getElementById('movimentacaoModal').classList.remove('active');
+        });
+        
+        document.getElementById('cancelarMovimentacao').addEventListener('click', () => {
+            document.getElementById('movimentacaoModal').classList.remove('active');
+        });
+        
+        // Processar o formulário de movimentação
+        document.getElementById('movimentacaoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const tipo = document.getElementById('movimentacaoTipo').value;
+            const codigoMedicamento = document.getElementById('movimentacaoMedicamento').value;
+            const quantidade = parseInt(document.getElementById('movimentacaoQuantidade').value);
+            const data = document.getElementById('movimentacaoData').value;
+            const destino = document.getElementById('movimentacaoDestino').value;
+            const responsavel = document.getElementById('movimentacaoResponsavel').value;
+            const observacao = document.getElementById('movimentacaoObservacao').value;
+            
+            // Validar se o medicamento foi selecionado
+            if (!codigoMedicamento) {
+                alert('Por favor, selecione um medicamento.');
+                return;
+            }
+            
+            // Encontrar o medicamento
+            const medicamento = medicamentos.find(m => m.codigo === codigoMedicamento);
+            
+            if (!medicamento) {
+                alert('Medicamento não encontrado.');
+                return;
+            }
+            
+            // Validar quantidade para saída
+            if (tipo === 'saida' && quantidade > medicamento.quantidade) {
+                alert(`Quantidade insuficiente em estoque. Disponível: ${medicamento.quantidade} ${medicamento.unidade}.`);
+                return;
+            }
+            
+            // Atualizar o estoque
+            if (tipo === 'entrada') {
+                medicamento.quantidade += quantidade;
+            } else {
+                medicamento.quantidade -= quantidade;
+            }
+            
+            // Registrar a movimentação
+            const movimentacao = {
+                id: Date.now(),
+                tipo,
+                codigoMedicamento,
+                nomeMedicamento: medicamento.nome,
+                quantidade,
+                data,
+                destino,
+                responsavel,
+                observacao
+            };
+            
+            movimentacoes.push(movimentacao);
+            
+            // Atualizar a tabela e contadores
+            atualizarTabela();
+            atualizarContadores();
+            
+            // Adicionar notificação
+            addNotification(`${tipo === 'entrada' ? 'Entrada' : 'Saída'} de ${quantidade} ${medicamento.unidade} de ${medicamento.nome} registrada.`);
+            
+            // Fechar o modal
+            document.getElementById('movimentacaoModal').classList.remove('active');
+        });
     </script>
 </body>
 </html>

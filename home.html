@@ -1,12 +1,39 @@
+<!-- 
+    Sistema de Gestão de Armazéns de Medicamentos Angola
+    Arquivo: home.html
+    Descrição: Página principal do sistema com dashboard e funcionalidades principais
+-->
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
+    <!-- Meta tags para configuração básica -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestão de Armazéns de Medicamentos Angola</title>
+    
+    <!-- Importação de recursos externos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="css/estilo.css">
+    
+    <!-- Estilos específicos da página -->
     <style>
+        /* Configuração do grid do dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Estilização dos cards do dashboard */
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
         /* Estilo do dashboard */
         .dashboard-grid {
             display: grid;
@@ -189,15 +216,8 @@
             position: relative;
         }
 
-        /* 
-         * SISTEMA DE NOTIFICAÇÕES
-         * ----------------------
-         * Implementa o dropdown de notificações com:
-         * - Lista de notificações
-         * - Indicador de não lidas
-         * - Ações de marcar como lido
-         */
-         .notifications-dropdown {
+        /* Estilos das notificações */
+        .notifications-dropdown {
             position: absolute;
             top: 100%;
             right: 0;
@@ -325,6 +345,37 @@
         .bg-orange { background-color: #fd7e14; }
         .bg-green { background-color: #28a745; }
         .bg-blue { background-color: #0077b6; }
+
+        /* Estilo do ícone de notificações */
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: white;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-icon:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-icon i {
+            font-size: 1rem;
+        }
+
+        .btn-icon .badge {
+            position: static;
+            background: none;
+            color: #2c3e50;
+            width: auto;
+            height: auto;
+            font-size: 1rem;
+        }
 
         /* Estilos do botão do menu */
         .menu-toggle {
@@ -478,21 +529,66 @@
         .profile-toggle:hover i {
             color: #3498db;
         }
+
+        /* Estilo para centralizar a barra de pesquisa */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+        }
+
+        .search-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            padding-right: 2.5rem;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 0.95rem;
+        }
+
+        .search-button {
+            padding: 0.75rem;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            background: white;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-button:hover {
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
     </style>
 </head>
 <body>
     <!-- Menu Lateral -->
     <aside class="sidebar">
+        <!-- Cabeçalho do menu lateral -->
         <div class="sidebar-header">
             <div class="profile-info">
+                <!-- Informações do perfil do usuário -->
                 <i class="fas fa-user-circle"></i>
                 <span>Usuário</span>
             </div>
-            <button class="close-sidebar">
+            <button class="close-sidebar" onclick="toggleMenu()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
+        <!-- Conteúdo do menu lateral -->
         <div class="menu-section">
             <h3>GESTÃO DE FARMÁCIA</h3>
             <a href="medicamentos.html" class="active">
@@ -548,41 +644,76 @@
     
     <!-- Conteúdo principal -->
     <div class="content">
+        <!-- Cabeçalho da página -->
         <header>
+            <!-- Botão do menu e título -->
             <div class="header-left">
                 <button class="profile-toggle" onclick="toggleMenu()">
                     <i class="fas fa-bars"></i>
                 </button>
                 <h1>Dashboard</h1>
             </div>
+            
+            <!-- Ações do usuário -->
             <div class="header-right">
-                <div class="search-bar">
-                    <input type="text" class="search-input" placeholder="Pesquisar medicamentos...">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Pesquisar actividades...">
                     <button class="search-button"><i class="fas fa-search"></i></button>
                 </div>
-                <div class="notifications">
-                    <button id="notificationsBtn">
+                <div class="header-actions">
+                    <button class="btn-icon" id="notificationsBtn">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">0</span>
+                        <span class="badge">3</span>
                     </button>
-                    <div class="notifications-dropdown">
+                    <div class="notifications-dropdown" id="notificationsDropdown">
                         <div class="notifications-header">
-                            <h3>Notificações</h3>
+                            <h3 class="notifications-title">Notificações</h3>
                             <button class="mark-all-read">Marcar todas como lidas</button>
                         </div>
-                        <div class="notifications-content">
-                            <!-- As notificações serão carregadas via JavaScript -->
+                        <div class="notifications-list">
+                            <div class="notification-item unread">
+                                <div class="notification-icon bg-red">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <h4 class="notification-title">Estoque Crítico</h4>
+                                    <p class="notification-message">Dipirona 500mg está com estoque abaixo do mínimo</p>
+                                    <p class="notification-time">Há 5 minutos</p>
+                                </div>
+                                <div class="notification-dot"></div>
+                            </div>
+                            <div class="notification-item unread">
+                                <div class="notification-icon bg-orange">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <h4 class="notification-title">Vencimento Próximo</h4>
+                                    <p class="notification-message">5 medicamentos vencem em 30 dias</p>
+                                    <p class="notification-time">Há 2 horas</p>
+                                </div>
+                                <div class="notification-dot"></div>
+                            </div>
+                            <div class="notification-item unread">
+                                <div class="notification-icon bg-green">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <h4 class="notification-title">Pedido Recebido</h4>
+                                    <p class="notification-message">Novo pedido de compra aprovado</p>
+                                    <p class="notification-time">Há 3 horas</p>
+                                </div>
+                                <div class="notification-dot"></div>
+                            </div>
+                        </div>
+                        <div class="notifications-footer">
+                            <a href="notificacoes.html" class="view-all">Ver todas as notificações</a>
                         </div>
                     </div>
-                </div>
-                <div class="user-profile">
-                    <button class="profile-button">
-                        <i class="fas fa-user-circle"></i>
-                    </button>
                 </div>
             </div>
         </header>
         
+        <!-- Grid do Dashboard -->
         <div class="dashboard">
             <div class="dashboard-cards">
                 <div class="card">
